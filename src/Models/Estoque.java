@@ -1,40 +1,88 @@
 package Models;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Estoque {
 
-    private Produto produto;
-    private int quantidade;
+    private List<Produto> produtos;
 
-    // Construtor
-    public Estoque(Produto produto, int quantidade) {
-        this.produto = produto;
-        this.quantidade = quantidade;
+    public Estoque() {
+        this.produtos = new ArrayList<>();
     }
 
-    // Getters
-    public Produto getProduto() {
-        return produto;
+    public Estoque(List<Produto> produtos) {
+        this.produtos = produtos;
     }
 
-    public int getQuantidade() {
-        return quantidade;
+    public List<Produto> getProdutos() {
+        return produtos;
     }
 
-    // Setters
-    public void setProduto(Produto produto) {
-        this.produto = produto;
+    public void setProdutos(List<Produto> produtos) {
+        this.produtos = produtos;
     }
 
-    public void setQuantidade(int quantidade) {
-        this.quantidade = quantidade;
+    public void adicionarProduto(Produto produto) {
+        produtos.add(produto);
     }
 
-    // toString()
+    public void removerProduto(int id) {
+        Produto produto = buscarProduto(id);
+
+        if (produto != null) {
+            produtos.remove(produto);
+        } else {
+            System.out.println("Produto não encontrado.");
+        }
+    }
+
+    public Produto buscarProduto(int id) {
+        for (Produto produto : produtos) {
+            if (produto.getId() == id) {
+                return produto;
+            }
+        }
+        return null;
+    }
+
+    public boolean verificarDisponibilidade(int id) {
+        Produto produto = buscarProduto(id);
+
+        return produto != null && produto.possuiEstoque();
+    }
+
+    public void atualizarQuantidade(int id, int novaQuantidade) {
+        Produto produto = buscarProduto(id);
+
+        if (produto != null) {
+            produto.setQuantidadeEstoque(novaQuantidade);
+        } else {
+            System.out.println("Produto não encontrado.");
+        }
+    }
+
+    public void atualizarProduto(Produto produtoAtualizado) {
+        Produto produto = buscarProduto(produtoAtualizado.getId());
+
+        if (produto != null) {
+            produto.setNome(produtoAtualizado.getNome());
+            produto.setCategoria(produtoAtualizado.getCategoria());
+            produto.setPreco(produtoAtualizado.getPreco());
+            produto.setQuantidadeEstoque(produtoAtualizado.getQuantidadeEstoque());
+        } else {
+            System.out.println("Produto não encontrado.");
+        }
+    }
+
     @Override
     public String toString() {
-        return "Estoque{" +
-                "produto=" + produto +
-                ", quantidade=" + quantidade +
-                '}';
+        StringBuilder sb = new StringBuilder("=== ESTOQUE ===\n");
+
+        for (Produto produto : produtos) {
+            sb.append(produto).append("\n\n");
+        }
+
+        return sb.toString();
     }
 }
