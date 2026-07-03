@@ -1,16 +1,6 @@
 package Models;
 
 public class Produto {
-
-
-//Adicionados atributos, construtores, getters, setters, toString e métodos de estoque conforme UML.
-
-//Código revisado:
-//- nomes claros;
-//- sem comentários desnecessários;
-//- sem código duplicado.
-
-
     private int id;
     private String nome;
     private CategoriaProduto categoria;
@@ -33,32 +23,28 @@ public class Produto {
         return id;
     }
 
-    public String getNome() {
-        return nome;
-    }
-
-    public CategoriaProduto getCategoria() {
-        return categoria;
-    }
-
-    public double getPreco() {
-        return preco;
-    }
-
-    public int getQuantidadeEstoque() {
-        return quantidadeEstoque;
-    }
-
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getNome() {
+        return nome;
     }
 
     public void setNome(String nome) {
         this.nome = nome;
     }
 
+    public CategoriaProduto getCategoria() {
+        return categoria;
+    }
+
     public void setCategoria(CategoriaProduto categoria) {
         this.categoria = categoria;
+    }
+
+    public double getPreco() {
+        return preco;
     }
 
     public void setPreco(double preco) {
@@ -67,6 +53,10 @@ public class Produto {
         } else {
             System.out.println("Preço inválido.");
         }
+    }
+
+    public int getQuantidadeEstoque() {
+        return quantidadeEstoque;
     }
 
     public void setQuantidadeEstoque(int quantidadeEstoque) {
@@ -107,11 +97,11 @@ public class Produto {
 
     @Override
     public String toString() {
-        return "ID................: " + id +
-                "\nNome..............: " + nome +
-                "\nCategoria.........: " + categoria +
-                "\nPreço.............: R$ " + String.format("%.2f", preco) +
-                "\nEstoque...........: " + quantidadeEstoque;
+        return "ID: " + id +
+                "\nNome: " + nome +
+                "\nCategoria: " + categoria +
+                "\nPreço: R$ " + String.format("%.2f", preco) +
+                "\nEstoque: " + quantidadeEstoque;
     }
 
 }
