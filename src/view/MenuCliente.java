@@ -1,20 +1,20 @@
 package view;
 
 import java.util.Scanner;
-import model.Funcionario;
-import repository.FuncionarioRepository;
 
-public class MenuFuncionario {
+import model.Cliente;
+import repository.ClienteRepository;
 
+public class MenuCliente {
     private Scanner sc = new Scanner(System.in);
-    private FuncionarioRepository repository = new FuncionarioRepository();
+    private ClienteRepository repository = new ClienteRepository();
 
     public void menu() {
 
         int opcao;
 
         do {
-            System.out.println("\n===== MENU FUNCIONÁRIO =====");
+            System.out.println("\n===== MENU CLIENTE =====");
             System.out.println("1 - Cadastrar");
             System.out.println("2 - Listar");
             System.out.println("3 - Buscar por CPF");
@@ -56,35 +56,35 @@ public class MenuFuncionario {
 
     private void cadastrar() {
 
-        System.out.print("Nome: ");
-        String nome = sc.nextLine();
+        // System.out.print("Nome: ");
+        // String nome = sc.nextLine();
 
-        System.out.print("CPF: ");
-        String cpf = sc.nextLine();
+        // System.out.print("CPF: ");
+        // String cpf = sc.nextLine();
 
-        System.out.print("Email: ");
-        String email = sc.nextLine();
+        // System.out.print("Email: ");
+        // String email = sc.nextLine();
 
-        System.out.print("Cargo: ");
-        String cargo = sc.nextLine();
+        // System.out.print("Cargo: ");
+        // String cargo = sc.nextLine();
 
-        System.out.print("Turno: ");
-        String turno = sc.nextLine();
+        // System.out.print("Turno: ");
+        // String turno = sc.nextLine();
 
-        Funcionario funcionario = new Funcionario(nome, cpf, email, cargo, turno);
+        // Cliente cliente = new Cliente(nome, cpf, email, cargo, turno);
 
-        repository.adicionar(funcionario);
+        // repository.adicionar(cliente);
 
-        System.out.println("Funcionário cadastrado com sucesso!");
+        // System.out.println("Cliente cadastrado com sucesso!");
     }
 
     private void listar() {
 
-        for (Funcionario funcionario : repository.listar()) {
+        for (Cliente cliente : repository.listar()) {
             System.out.println("----------------------------");
-            System.out.println(funcionario);
-            System.out.println("Cargo: " + funcionario.getCargo());
-            System.out.println("Turno: " + funcionario.getTurno());
+            System.out.println(cliente);
+            // System.out.println("Cargo: " + cliente.getCargo());
+            // System.out.println("Turno: " + cliente.getTurno());
         }
 
     }
@@ -94,14 +94,14 @@ public class MenuFuncionario {
         System.out.print("CPF: ");
         String cpf = sc.nextLine();
 
-        Funcionario funcionario = repository.buscarPorCpf(cpf);
+        Cliente cliente = repository.buscarPorCpf(cpf);
 
-        if (funcionario != null) {
-            System.out.println(funcionario);
-            System.out.println("Cargo: " + funcionario.getCargo());
-            System.out.println("Turno: " + funcionario.getTurno());
+        if (cliente != null) {
+            System.out.println(cliente);
+            // System.out.println("Cargo: " + cliente.getCargo());
+            // System.out.println("Turno: " + cliente.getTurno());
         } else {
-            System.out.println("Funcionário não encontrado.");
+            System.out.println("Cliente não encontrado.");
         }
 
     }
