@@ -3,8 +3,8 @@ package view;
 import java.util.List;
 import java.util.Scanner;
 
-import model.CategoriaProduto;
 import model.Produto;
+import model.enums.CategoriaProduto;
 import repository.ProdutoRepository;
 
 public class MenuProduto {
@@ -72,13 +72,12 @@ public class MenuProduto {
 
     private void cadastrarProduto() {
 
-       Integer id = lerIdOuVoltar();
+        Integer id = lerIdOuVoltar();
 
-if (id == null) {
-    return;
-}
+        if (id == null) {
+            return;
+        }
 
-        
         if (repository.buscarProdutoPorId(id) != null) {
             System.out.println("\nJá existe um produto cadastrado com esse ID.");
             return;
@@ -131,9 +130,9 @@ if (id == null) {
 
         Integer id = lerIdOuVoltar();
 
-if (id == null) {
-    return;
-}
+        if (id == null) {
+            return;
+        }
 
         Produto produto = repository.buscarProdutoPorId(id);
 
@@ -154,10 +153,10 @@ if (id == null) {
 
         Integer id = lerIdOuVoltar();
 
-if (id == null) {
-    return;
-}
-       
+        if (id == null) {
+            return;
+        }
+
         Produto produtoExistente = repository.buscarProdutoPorId(id);
 
         if (produtoExistente == null) {
@@ -188,12 +187,12 @@ if (id == null) {
 
     private void removerProduto() {
 
-       Integer id = lerIdOuVoltar();
+        Integer id = lerIdOuVoltar();
 
-if (id == null) {
-    return;
-}
-        
+        if (id == null) {
+            return;
+        }
+
         Produto produtoExistente = repository.buscarProdutoPorId(id);
 
         if (produtoExistente == null) {
@@ -236,36 +235,26 @@ if (id == null) {
 
         }
 
-        
-
     }
 
     private Integer lerIdOuVoltar() {
 
-    while (true) {
+        while (true) {
 
-        System.out.print("ID (ou digite V para voltar): ");
-        String entrada = scanner.nextLine();
+            System.out.print("ID (ou digite V para voltar): ");
+            String entrada = scanner.nextLine();
 
-        if (entrada.equalsIgnoreCase("V")) {
-            return null;
+            if (entrada.equalsIgnoreCase("V")) {
+                return null;
+            }
+
+            try {
+                return Integer.parseInt(entrada);
+            } catch (NumberFormatException e) {
+                System.out.println("ID inválido. Digite um número ou V para voltar.");
+            }
+
         }
-
-        try {
-            return Integer.parseInt(entrada);
-        } catch (NumberFormatException e) {
-            System.out.println("ID inválido. Digite um número ou V para voltar.");
-        }
-
-    }
-
-}
-
-    // Método main para testar o MenuProduto
-    public static void main(String[] args) {
-
-        MenuProduto menu = new MenuProduto();
-        menu.executar();
 
     }
 

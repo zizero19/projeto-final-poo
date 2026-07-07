@@ -1,26 +1,27 @@
 package model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+
+import model.enums.StatusPedido;
 
 public class Pedido {
     private int id;
     private Cliente cliente;
-    private Funcionario funcionario;
-    private List<ItemPedido> itens;
+    private List<ItemPedido> itens = new ArrayList<>();
     private LocalDateTime dataHora;
     private StatusPedido status;
 
     public Pedido() {
     }
 
-    public Pedido(int id, Cliente cliente, Funcionario funcionario, List<ItemPedido> itens, LocalDateTime dataHora) {
+    public Pedido(int id, Cliente cliente) {
         this.id = id;
         this.cliente = cliente;
-        this.funcionario = funcionario;
-        this.itens = itens;
-        this.dataHora = dataHora;
+        this.dataHora = LocalDateTime.now();
         this.status = StatusPedido.EM_PREPARO;
+        this.itens = new ArrayList<>();
     }
 
     public int getId() {
@@ -37,14 +38,6 @@ public class Pedido {
 
     public void setCliente(Cliente cliente) {
         this.cliente = cliente;
-    }
-
-    public Funcionario getFuncionario() {
-        return funcionario;
-    }
-
-    public void setFuncionario(Funcionario funcionario) {
-        this.funcionario = funcionario;
     }
 
     public List<ItemPedido> getItens() {
@@ -103,14 +96,10 @@ public class Pedido {
         return total;
     }
 
-    public void atualizarStatus(StatusPedido novoStatus) {
-        if (novoStatus == null) {
-            System.out.println("O status não pode ser nulo.");
-            return;
-        }
-
-        this.status = novoStatus;
-    }
+    // Public void finalizarPedido() {}
+    // Public void cancelarPedido() {}
+    // Public void cobrarPedido() {}
+    // Public void fiarPedido() {}
 
     @Override
     public String toString() {
@@ -119,7 +108,6 @@ public class Pedido {
         sb.append("===== PEDIDO =====\n");
         sb.append("ID: ").append(id).append("\n");
         sb.append("Cliente: ").append(cliente != null ? cliente : "Nenhum").append("\n");
-        sb.append("Funcionário: ").append(funcionario != null ? funcionario : "Nenhum").append("\n");
         sb.append("Data/Hora: ").append(dataHora).append("\n");
         sb.append("Status: ").append(status).append("\n");
         sb.append("Itens do pedido:\n");
