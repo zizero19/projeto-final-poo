@@ -28,7 +28,7 @@ public class ClienteRepository {
 
     public Cliente buscarPorMatricula(String matricula) {
         for (Cliente cliente : clientes) {
-            if (cliente.getMatricula().equals(matricula)) {
+            if (cliente.getTurmaMatriculada() != null && cliente.getTurmaMatriculada().getNomeTurma().equals(matricula)) {
                 return cliente;
             }
         }
@@ -43,7 +43,7 @@ public class ClienteRepository {
             cliente.setNome(novoCliente.getNome());
             cliente.setCpf(novoCliente.getCpf());
             cliente.setEmail(novoCliente.getEmail());
-            cliente.setMatricula(novoCliente.getMatricula());
+            cliente.setTurmaMatriculada(novoCliente.getTurmaMatriculada());
             cliente.setTelefone(novoCliente.getTelefone());
             return true;
         }
