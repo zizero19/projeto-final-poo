@@ -23,56 +23,64 @@ public class Estoque {
         this.produtos = produtos;
     }
 
+    
     public void adicionarProduto(Produto produto) {
+        if (produto == null) {
+            System.out.println("O produto não pode ser nulo.");
+            return;
+        }
+
         produtos.add(produto);
     }
 
+    
     public void removerProduto(int id) {
-        Produto produto = buscarProduto(id);
+        Produto produto = localizarProduto(id);
 
-        if (produto != null) {
-            produtos.remove(produto);
-        } else {
+        if (produto == null) {
             System.out.println("Produto não encontrado.");
+            return;
+        }
+
+        produtos.remove(produto);
+    }
+
+    
+    public String buscarProduto(int id) {
+        Produto produto = localizarProduto(id);
+
+        if (produto == null) {
+            return "Produto não encontrado.";
+        }
+
+        return produto.toString();
+    }
+
+   
+    public void verificarDisponibilidade(int id) {
+        Produto produto = localizarProduto(id);
+
+        if (produto == null) {
+            System.out.println("Produto não encontrado.");
+            return;
+        }
+
+        if (produto.possuiEstoque()) {
+            System.out.println("O produto '" + produto.getNome() + "' possui estoque disponível ("
+                    + produto.getQuantidadeEstoque() + " unidades).");
+        } else {
+            System.out.println("O produto '" + produto.getNome() + "' está sem estoque disponível.");
         }
     }
 
-    public Produto buscarProduto(int id) {
+    
+    private Produto localizarProduto(int id) {
         for (Produto produto : produtos) {
             if (produto.getId() == id) {
                 return produto;
             }
         }
         return null;
-    }
-
-    public boolean verificarDisponibilidade(int id) {
-        Produto produto = buscarProduto(id);
-
-        return produto != null && produto.possuiEstoque();
-    }
-
-    public void atualizarQuantidade(int id, int novaQuantidade) {
-        Produto produto = buscarProduto(id);
-
-        if (produto != null) {
-            produto.setQuantidadeEstoque(novaQuantidade);
-        } else {
-            System.out.println("Produto não encontrado.");
-        }
-    }
-
-    public void atualizarProduto(Produto produtoAtualizado) {
-        Produto produto = buscarProduto(produtoAtualizado.getId());
-
-        if (produto != null) {
-            produto.setNome(produtoAtualizado.getNome());
-            produto.setCategoria(produtoAtualizado.getCategoria());
-            produto.setPreco(produtoAtualizado.getPreco());
-            produto.setQuantidadeEstoque(produtoAtualizado.getQuantidadeEstoque());
-        } else {
-            System.out.println("Produto não encontrado.");
-        }
     }
 
     @Override
