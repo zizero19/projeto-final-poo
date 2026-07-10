@@ -96,10 +96,46 @@ public class Pedido {
         return total;
     }
 
-    // Public void finalizarPedido() {}
-    // Public void cancelarPedido() {}
-    // Public void cobrarPedido() {}
-    // Public void fiarPedido() {}
+    public void finalizarPedido() {
+        if (itens.isEmpty()) {
+            System.out.println("Não é possível finalizar um pedido sem itens.");
+            return;
+        }
+
+        if (status == StatusPedido.FINALIZADO) {
+            System.out.println("O pedido já está finalizado.");
+            return;
+        }
+
+        if (this.status == StatusPedido.AGUARDANDO_PAGAMENTO) {
+            this.status = StatusPedido.FINALIZADO;
+        }
+
+    }
+
+    public void cancelarPedido() {
+        if (this.status == StatusPedido.AGUARDANDO_PAGAMENTO || this.status == StatusPedido.EM_PREPARO) {
+            this.status = StatusPedido.CANCELADO;
+        } else {
+            System.out.println("Não é possível cancelar um pedido que já foi finalizado.");
+        }
+    }
+
+    public void cobrarPedido() {
+        if (this.status == StatusPedido.EM_PREPARO) {
+            this.status = StatusPedido.AGUARDANDO_PAGAMENTO;
+        } else {
+            System.out.println("Não é possível cobrar um pedido que já foi finalizado ou cancelado.");
+        }
+    }
+
+    public void fiarPedido() {
+        if (this.status == StatusPedido.EM_PREPARO || this.status == StatusPedido.AGUARDANDO_PAGAMENTO) {
+            this.status = StatusPedido.FIADO;
+        } else {
+            System.out.println("Não é possível fiar um pedido que já foi finalizado ou cancelado.");
+        }
+    }
 
     @Override
     public String toString() {
