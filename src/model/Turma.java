@@ -3,6 +3,7 @@ package model;
 import model.enums.Turno;
 
 public class Turma {
+    private int id;
     private String nomeTurma;
     private int qtdALunos;
     private Turno turno;
@@ -11,11 +12,20 @@ public class Turma {
     public Turma() {
     }
 
-    public Turma(String nomeTurma, int qtdALunos, Turno turno, boolean isAtivo) {
+    public Turma(int id, String nomeTurma, int qtdALunos, Turno turno, boolean isAtivo) {
+        this.id = id;
         this.nomeTurma = nomeTurma;
         this.qtdALunos = qtdALunos;
         this.turno = turno;
         this.isAtivo = isAtivo;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getNomeTurma() {
