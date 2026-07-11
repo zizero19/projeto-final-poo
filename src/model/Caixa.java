@@ -1,6 +1,6 @@
 package model;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -9,11 +9,12 @@ import java.util.Set;
 import model.enums.StatusPedido;
 
 public class Caixa {
+    private int id;
     private List<Pedido> pedidos;
     private double totalVendas;
     private boolean isAberto;
-    private LocalTime abertura;
-    private LocalTime fechamento;
+    private LocalDateTime abertura;
+    private LocalDateTime fechamento;
     private int qtdMaxClientes;
 
     public Caixa() {
@@ -25,14 +26,23 @@ public class Caixa {
         this.qtdMaxClientes = qtdMaxClientes;
     }
 
-    public Caixa(List<Pedido> pedidos, double totalVendas, boolean isAberto, LocalTime abertura,
-            LocalTime fechamento, int qtdMaxClientes) {
+    public Caixa(int id, List<Pedido> pedidos, double totalVendas, boolean isAberto, LocalDateTime abertura,
+            LocalDateTime fechamento, int qtdMaxClientes) {
+        this.id = id;
         this.pedidos = pedidos;
         this.totalVendas = totalVendas;
         this.isAberto = isAberto;
         this.abertura = abertura;
         this.fechamento = fechamento;
         this.qtdMaxClientes = qtdMaxClientes;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public List<Pedido> getPedidos() {
@@ -59,19 +69,19 @@ public class Caixa {
         this.isAberto = isAberto;
     }
 
-    public LocalTime getAbertura() {
+    public LocalDateTime getAbertura() {
         return abertura;
     }
 
-    public void setAbertura(LocalTime abertura) {
+    public void setAbertura(LocalDateTime abertura) {
         this.abertura = abertura;
     }
 
-    public LocalTime getFechamento() {
+    public LocalDateTime getFechamento() {
         return fechamento;
     }
 
-    public void setFechamento(LocalTime fechamento) {
+    public void setFechamento(LocalDateTime fechamento) {
         this.fechamento = fechamento;
     }
 
@@ -83,7 +93,6 @@ public class Caixa {
         this.qtdMaxClientes = qtdMaxClientes;
     }
 
-   
     public void abrir() {
         if (isAberto) {
             System.out.println("O caixa já está aberto.");
@@ -93,11 +102,10 @@ public class Caixa {
         this.pedidos = new ArrayList<>();
         this.totalVendas = 0.0;
         this.isAberto = true;
-        this.abertura = LocalTime.now();
+        this.abertura = LocalDateTime.now();
         this.fechamento = null;
     }
 
-   
     public void fechar() {
         if (!isAberto) {
             System.out.println("O caixa já está fechado.");
@@ -105,10 +113,9 @@ public class Caixa {
         }
 
         this.isAberto = false;
-        this.fechamento = LocalTime.now();
+        this.fechamento = LocalDateTime.now();
     }
 
-  
     public void registrarPedido(Pedido pedido) {
         if (!isAberto) {
             System.out.println("Não é possível registrar pedidos com o caixa fechado.");
