@@ -1,7 +1,8 @@
 package view;
 
 import java.util.List;
-import java.util.Scanner;
+
+import javax.swing.JOptionPane;
 
 import model.Produto;
 import model.enums.CategoriaProduto;
@@ -9,11 +10,9 @@ import repository.ProdutoRepository;
 
 public class MenuProduto {
 
-    private Scanner scanner;
     private ProdutoRepository repository;
 
     public MenuProduto() {
-        scanner = new Scanner(System.in);
         repository = new ProdutoRepository();
     }
 
@@ -23,17 +22,26 @@ public class MenuProduto {
 
         do {
 
-            System.out.println("\n========== MENU PRODUTO ==========");
-            System.out.println("1 - Cadastrar Produto");
-            System.out.println("2 - Listar Produtos");
-            System.out.println("3 - Buscar Produto por ID");
-            System.out.println("4 - Atualizar Produto");
-            System.out.println("5 - Remover Produto");
-            System.out.println("0 - Voltar");
-            System.out.print("Escolha uma opção: ");
+            String escolha = JOptionPane.showInputDialog(null,
+                    "========== MENU PRODUTO ==========\n" +
+                    "1 - Cadastrar Produto\n" +
+                    "2 - Listar Produtos\n" +
+                    "3 - Buscar Produto por ID\n" +
+                    "4 - Atualizar Produto\n" +
+                    "5 - Remover Produto\n" +
+                    "0 - Voltar\n" +
+                    "Escolha uma opção:");
 
-            opcao = scanner.nextInt();
-            scanner.nextLine();
+            if (escolha == null) {
+                break;
+            }
+
+            try {
+                opcao = Integer.parseInt(escolha);
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null, "Opção inválida.");
+                opcao = -1;
+            }
 
             switch (opcao) {
 
@@ -58,11 +66,13 @@ public class MenuProduto {
                     break;
 
                 case 0:
-                    System.out.println("Retornando...");
+                    JOptionPane.showMessageDialog(null, "V3oltando...");
                     break;
 
                 default:
-                    System.out.println("Opção inválida.");
+                    if (opcao != -1) {
+                        JOptionPane.showMessageDialog(null, "Opção inválida.");
+                    }
 
             }
 
@@ -79,28 +89,31 @@ public class MenuProduto {
         }
 
         if (repository.buscarProdutoPorId(id) != null) {
-            System.out.println("\nJá existe um produto cadastrado com esse ID.");
+            JOptionPane.showMessageDialog(null, "Já existe um produto cadastrado com esse ID.");
             return;
         }
 
         Produto produto = new Produto();
         produto.setId(id);
 
-        System.out.print("Nome: ");
-        produto.setNome(scanner.nextLine());
+        String nome = JOptionPane.showInputDialog(null, "Nome:");
+        produto.setNome(nome);
 
-        produto.setCategoria(lerCategoria());
+        CategoriaProduto categoria = lerCategoria();
+        if (categoria == null) {
+            return;
+        }
+        produto.setCategoria(categoria);
 
-        System.out.print("Preço: ");
-        produto.setPreco(scanner.nextDouble());
+        String precoTexto = JOptionPane.showInputDialog(null, "Preço:");
+        produto.setPreco(Double.parseDouble(precoTexto));
 
-        System.out.print("Quantidade em estoque: ");
-        produto.setQuantidadeEstoque(scanner.nextInt());
-        scanner.nextLine();
+        String quantidadeTexto = JOptionPane.showInputDialog(null, "Quantidade em estoque:");
+        produto.setQuantidadeEstoque(Integer.parseInt(quantidadeTexto));
 
         String mensagem = repository.adicionarProduto(produto);
 
-        System.out.println("\n" + mensagem);
+        JOptionPane.showMessageDialog(null, mensagem);
 
     }
 
@@ -110,19 +123,21 @@ public class MenuProduto {
 
         if (produtos.isEmpty()) {
 
-            System.out.println("\nNenhum produto cadastrado.");
+            JOptionPane.showMessageDialog(null, "Nenhum produto cadastrado.");
             return;
 
         }
 
-        System.out.println("\n========== PRODUTOS ==========");
+        StringBuilder texto = new StringBuilder("========== PRODUTOS ==========\n");
 
         for (Produto produto : produtos) {
 
-            System.out.println(produto);
-            System.out.println("----------------------------");
+            texto.append(produto);
+            texto.append("\n----------------------------\n");
 
         }
+
+        JOptionPane.showMessageDialog(null, texto.toString());
 
     }
 
@@ -138,12 +153,11 @@ public class MenuProduto {
 
         if (produto == null) {
 
-            System.out.println("\nProduto não encontrado.");
+            JOptionPane.showMessageDialog(null, "Produto não encontrado.");
 
         } else {
 
-            System.out.println();
-            System.out.println(produto);
+            JOptionPane.showMessageDialog(null, produto.toString());
 
         }
 
@@ -160,28 +174,31 @@ public class MenuProduto {
         Produto produtoExistente = repository.buscarProdutoPorId(id);
 
         if (produtoExistente == null) {
-            System.out.println("\nProduto não encontrado.");
+            JOptionPane.showMessageDialog(null, "Produto não encontrado.");
             return;
         }
 
         Produto produto = new Produto();
         produto.setId(id);
 
-        System.out.print("Novo nome: ");
-        produto.setNome(scanner.nextLine());
+        String nome = JOptionPane.showInputDialog(null, "Novo nome:");
+        produto.setNome(nome);
 
-        produto.setCategoria(lerCategoria());
+        CategoriaProduto categoria = lerCategoria();
+        if (categoria == null) {
+            return;
+        }
+        produto.setCategoria(categoria);
 
-        System.out.print("Novo preço: ");
-        produto.setPreco(scanner.nextDouble());
+        String precoTexto = JOptionPane.showInputDialog(null, "Novo preço:");
+        produto.setPreco(Double.parseDouble(precoTexto));
 
-        System.out.print("Nova quantidade em estoque: ");
-        produto.setQuantidadeEstoque(scanner.nextInt());
-        scanner.nextLine();
+        String quantidadeTexto = JOptionPane.showInputDialog(null, "Nova quantidade em estoque:");
+        produto.setQuantidadeEstoque(Integer.parseInt(quantidadeTexto));
 
         String mensagem = repository.atualizarProduto(produto);
 
-        System.out.println("\n" + mensagem);
+        JOptionPane.showMessageDialog(null, mensagem);
 
     }
 
@@ -196,13 +213,13 @@ public class MenuProduto {
         Produto produtoExistente = repository.buscarProdutoPorId(id);
 
         if (produtoExistente == null) {
-            System.out.println("\nProduto não encontrado.");
+            JOptionPane.showMessageDialog(null, "Produto não encontrado.");
             return;
         }
 
         String mensagem = repository.removerProduto(id);
 
-        System.out.println("\n" + mensagem);
+        JOptionPane.showMessageDialog(null, mensagem);
 
     }
 
@@ -212,26 +229,33 @@ public class MenuProduto {
 
         while (true) {
 
-            System.out.println("\nCategorias:");
+            StringBuilder texto = new StringBuilder("Categorias:\n");
 
             for (int i = 0; i < categorias.length; i++) {
-
-                System.out.println((i + 1) + " - " + categorias[i]);
-
+                texto.append((i + 1) + " - " + categorias[i] + "\n");
             }
 
-            System.out.print("Escolha a categoria: ");
+            texto.append("Escolha a categoria:");
 
-            int opcao = scanner.nextInt();
-            scanner.nextLine();
+            String escolha = JOptionPane.showInputDialog(null, texto.toString());
 
-            if (opcao >= 1 && opcao <= categorias.length) {
-
-                return categorias[opcao - 1];
-
+            if (escolha == null) {
+                return null;
             }
 
-            System.out.println("Categoria inválida.");
+            try {
+
+                int opcao = Integer.parseInt(escolha);
+
+                if (opcao >= 1 && opcao <= categorias.length) {
+                    return categorias[opcao - 1];
+                }
+
+            } catch (NumberFormatException e) {
+                
+            }
+
+            JOptionPane.showMessageDialog(null, "Categoria inválida.");
 
         }
 
@@ -241,17 +265,16 @@ public class MenuProduto {
 
         while (true) {
 
-            System.out.print("ID (ou digite V para voltar): ");
-            String entrada = scanner.nextLine();
+            String entrada = JOptionPane.showInputDialog(null, "ID (ou deixe em branco para voltar):");
 
-            if (entrada.equalsIgnoreCase("V")) {
+            if (entrada == null || entrada.trim().isEmpty()) {
                 return null;
             }
 
             try {
                 return Integer.parseInt(entrada);
             } catch (NumberFormatException e) {
-                System.out.println("ID inválido. Digite um número ou V para voltar.");
+                JOptionPane.showMessageDialog(null, "ID inválido. Digite um número ou deixe em branco para voltar.");
             }
 
         }
