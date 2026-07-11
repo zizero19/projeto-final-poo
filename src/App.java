@@ -1,12 +1,7 @@
-import model.*;
-import view.MenuProduto;
-
+import view.*;
 public class App {
-
     public static void main(String[] args) throws Exception {
-
-        MenuProduto menuProduto = new MenuProduto();
-        menuProduto.executar();
-
+        MenuCaixa menu = new MenuCaixa();
+        menu.menu();
     }
 }

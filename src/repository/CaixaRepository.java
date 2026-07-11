@@ -14,39 +14,53 @@ public class CaixaRepository {
         this.caixas = new ArrayList<>();
     }
 
-    public void abrirCaixa(Caixa caixa) {
+   public void abrirCaixa(Caixa caixa) {
 
-        if (caixa == null) {
-            JOptionPane.showMessageDialog(null, "Caixa não pode ser nulo.");
-            return;
-        }
-
-        if (caixa.isAberto()) {
-            JOptionPane.showMessageDialog(null, "O caixa já está aberto.");
-            return;
-        }
-
-        caixa.abrir();
-        caixas.add(caixa);
-
-        JOptionPane.showMessageDialog(null,
-                "Caixa aberto com sucesso!\n\n" + caixa);
+    if (caixa == null) {
+        JOptionPane.showMessageDialog(null, "Caixa não pode ser nulo.");
+        return;
     }
 
-    public void salvar(Caixa caixa) {
+    caixa.abrir(); // Grava a data e hora atuais
 
-        if (caixa == null) {
+    caixas.add(caixa);
+
+    JOptionPane.showMessageDialog(null,
+            "Caixa aberto com sucesso!\n\n" +
+            "Data/Hora de abertura: " + caixa.getAbertura());
+}
+
+
+
+
+
+    public void fecharCaixa(int id) {
+
+    for (Caixa caixa : caixas) {
+
+        if (caixa.getId() == id) {
+
+            if (!caixa.isAberto()) {
+                JOptionPane.showMessageDialog(null,
+                        "Este caixa já está fechado.");
+                return;
+            }
+
+            caixa.fechar(); // Grava a data e hora atuais
+
             JOptionPane.showMessageDialog(null,
-                    "Caixa não pode ser nulo.");
+                    "Caixa fechado com sucesso!\n\n" +
+                    "Data/Hora de fechamento: " + caixa.getFechamento() +
+                    "\nTotal de vendas: R$ " + String.format("%.2f", caixa.getTotalVendas()) +
+                    "\nQuantidade de pedidos: " + caixa.getPedidos().size());
+
             return;
         }
-
-        caixas.add(caixa);
-
-        JOptionPane.showMessageDialog(null,
-                "Caixa registrado com sucesso.");
     }
 
+    JOptionPane.showMessageDialog(null,
+            "Caixa não encontrado.");
+}
     public void listar() {
         if (caixas.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Nenhum caixa cadastrado.");

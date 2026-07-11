@@ -2,6 +2,7 @@ package view;
 
 import javax.swing.JOptionPane;
 
+import model.Caixa;
 import repository.CaixaRepository;
 
 public class MenuCaixa {
@@ -41,11 +42,28 @@ public class MenuCaixa {
                 switch (opcao) {
 
                     case 1:
-                        caixaRepository.abrirCaixa(null);
+
+                        int id = Integer.parseInt(
+                                JOptionPane.showInputDialog("Digite o ID do caixa:"));
+
+                        int qtdMaxClientes = Integer.parseInt(
+                                JOptionPane.showInputDialog("Quantidade máxima de clientes:"));
+
+                        Caixa caixa = new Caixa(qtdMaxClientes);
+                        caixa.setId(id);
+
+                        caixaRepository.abrirCaixa(caixa);
+
                         break;
 
+                
                     case 2:
-                        caixaRepository.salvar(null);
+
+                        int idFechar = Integer.parseInt(
+                                JOptionPane.showInputDialog("Digite o ID do caixa:"));
+
+                        caixaRepository.fecharCaixa(idFechar);
+
                         break;
 
                     case 3:
@@ -53,9 +71,9 @@ public class MenuCaixa {
                         break;
 
                     case 4:
-                        int id = Integer
+                        int idd = Integer
                                 .parseInt(JOptionPane.showInputDialog("Digite o ID do caixa que deseja buscar"));
-                        caixaRepository.buscarPorId(id);
+                        caixaRepository.buscarPorId(idd);
                         break;
 
                     case 0:
