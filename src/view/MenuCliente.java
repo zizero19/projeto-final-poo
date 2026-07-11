@@ -1,121 +1,149 @@
 package view;
 
-import java.util.Scanner;
+import javax.swing.JOptionPane;
 
 import model.Cliente;
+import model.Turma;
+import model.enums.Turno;
 import repository.ClienteRepository;
 
 public class MenuCliente {
-    private Scanner sc = new Scanner(System.in);
     private ClienteRepository repository = new ClienteRepository();
 
     public void menu() {
 
-        int opcao;
+      int opcao = -1;
 
-        do {
-            System.out.println("\n===== MENU CLIENTE =====");
-            System.out.println("1 - Cadastrar");
-            System.out.println("2 - Listar");
-            System.out.println("3 - Buscar por CPF");
-            System.out.println("4 - Remover");
-            System.out.println("0 - Voltar");
-            System.out.print("Opção: ");
+do {
 
-            opcao = sc.nextInt();
-            sc.nextLine();
+    try {
 
-            switch (opcao) {
+        String entrada = JOptionPane.showInputDialog(
+                "========= MENU CLIENTE =========\n"
+                + "1 - Cadastrar\n"
+                + "2 - Listar\n"
+                + "3 - Buscar por CPF\n"
+                + "4 - Remover\n"
+                + "0 - Voltar\n\n"
+                + "Escolha uma opção:");
 
-                case 1:
-                    cadastrar();
-                    break;
+        // Cancelou ou fechou a janela
+        if (entrada == null) {
+            break;
+        }
 
-                case 2:
-                    listar();
-                    break;
+        // Não digitou nada
+        if (entrada.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    null,
+                    "Digite uma opção!",
+                    "Aviso",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            continue;
+        }
 
-                case 3:
-                    buscar();
-                    break;
+        opcao = Integer.parseInt(entrada);
 
-                case 4:
-                    remover();
-                    break;
+        switch (opcao) {
 
-                case 0:
-                    System.out.println("Voltando...");
-                    break;
+            case 1:
+                cadastrar();
+                break;
 
-                default:
-                    System.out.println("Opção inválida.");
-            }
+            case 2:
+                listar();
+                break;
 
-        } while (opcao != 0);
+            case 3:
+                buscar();
+                break;
+
+            case 4:
+                remover();
+                break;
+
+            case 0:
+                JOptionPane.showMessageDialog(null, "Voltando ao menu principal...");
+                break;
+
+            default:
+                JOptionPane.showMessageDialog(null, "Opção inválida.");
+        }
+
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(
+                null,
+                "Digite apenas números!",
+                "Erro",
+                JOptionPane.ERROR_MESSAGE
+        );
     }
+
+} while (opcao != 0);
+}
+    // rever os dados do metodo cadastro se de fato sao esses
 
     private void cadastrar() {
 
-        // System.out.print("Nome: ");
-        // String nome = sc.nextLine();
+        String nome = JOptionPane.showInputDialog("Nome:");
+        String cpf = JOptionPane.showInputDialog("CPF:");
+        String email = JOptionPane.showInputDialog("Email:");
+        String telefone = JOptionPane.showInputDialog("Telefone:");
+        String nomeTurma = JOptionPane.showInputDialog("Turma:");
+        String turnoDigitado = JOptionPane.showInputDialog("Turno (Matutino, Vespertino, Noturno ou Integral):");
 
-        // System.out.print("CPF: ");
-        // String cpf = sc.nextLine();
+        Turma turmaMatriculada = new Turma();
+        turmaMatriculada.setNomeTurma(nomeTurma);
+        turmaMatriculada.setQtdALunos(0);
+        turmaMatriculada.setTurno(Turno.valueOf(turnoDigitado.toUpperCase()));
+        turmaMatriculada.setAtivo(true);
 
-        // System.out.print("Email: ");
-        // String email = sc.nextLine();
+        // Cria o cliente
+        Cliente cliente = new Cliente(nome, cpf, email, turmaMatriculada, telefone, false, null);
+        repository.adicionar(cliente);
+        JOptionPane.showMessageDialog(null, "Cliente cadastrado com sucesso!");
+        JOptionPane.showMessageDialog(null, "Cliente cadastrado com sucesso!\n" + cliente.toString());
 
-        // System.out.print("Cargo: ");
-        // String cargo = sc.nextLine();
-
-        // System.out.print("Turno: ");
-        // String turno = sc.nextLine();
-
-        // Cliente cliente = new Cliente(nome, cpf, email, cargo, turno);
-
-        // repository.adicionar(cliente);
-
-        // System.out.println("Cliente cadastrado com sucesso!");
     }
 
     private void listar() {
 
+        StringBuilder sb = new StringBuilder();
         for (Cliente cliente : repository.listar()) {
-            System.out.println("----------------------------");
-            System.out.println(cliente);
-            // System.out.println("Cargo: " + cliente.getCargo());
-            // System.out.println("Turno: " + cliente.getTurno());
+            sb.append(cliente.toString()).append("\n");
         }
+        JOptionPane.showMessageDialog(null, sb.toString(), "Lista de Clientes", JOptionPane.INFORMATION_MESSAGE);
 
     }
 
     private void buscar() {
 
-        System.out.print("CPF: ");
-        String cpf = sc.nextLine();
-
+        String cpf = JOptionPane.showInputDialog("CPF:  ");
         Cliente cliente = repository.buscarPorCpf(cpf);
 
         if (cliente != null) {
-            System.out.println(cliente);
-            // System.out.println("Cargo: " + cliente.getCargo());
-            // System.out.println("Turno: " + cliente.getTurno());
+        JOptionPane.showMessageDialog(null, "Cliente encontrado:\n" + cliente.toString());
         } else {
-            System.out.println("Cliente não encontrado.");
+          JOptionPane.showMessageDialog(null, "Cliente não encontrado.");
         }
 
     }
 
-    private void remover() {
-
-        System.out.print("CPF: ");
-        String cpf = sc.nextLine();
-
-        if (repository.remover(cpf)) {
-            System.out.println("Removido com sucesso!");
-        } else {
-            System.out.println("Funcionário não encontrado.");
-        }
-
-    }
+    
+      private void remover() {
+      
+      String cpf = JOptionPane.showInputDialog("CPF:  ");
+        Cliente cliente = repository.buscarPorCpf(cpf);
+      
+      if (repository.remover(cpf)) {
+        JOptionPane.showMessageDialog(null, "Cliente encontrado: \n" + cliente.toString());
+      JOptionPane.showMessageDialog(null, "Cliente removido com sucesso!");
+      } else {
+        JOptionPane.showMessageDialog(null, "Cliente não encontrado.");
+      }
+      }
+     
+     
+    
 }

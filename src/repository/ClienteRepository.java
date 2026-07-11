@@ -5,7 +5,11 @@ import model.Cliente;
 
 public class ClienteRepository {
 
-    private ArrayList<Cliente> clientes = new ArrayList<>();
+    private ArrayList<Cliente> clientes;
+
+    public ClienteRepository() {
+        this.clientes = new ArrayList<>();
+    }
 
     // CREATE
     public void adicionar(Cliente cliente) {
