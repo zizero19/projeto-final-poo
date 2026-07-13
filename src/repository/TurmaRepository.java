@@ -1,13 +1,14 @@
 package repository;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JOptionPane;
 
 import model.Turma;
 
 public class TurmaRepository {
-    private ArrayList<Turma> turmas;
+    private List<Turma> turmas;
 
     public TurmaRepository() {
         this.turmas = new ArrayList<>();
@@ -28,7 +29,7 @@ public class TurmaRepository {
         turmas.add(turma);
     }
 
-    public ArrayList<Turma> listarTurmas() {
+    public List<Turma> listarTurmas() {
         return turmas;
     }
 

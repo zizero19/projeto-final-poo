@@ -59,4 +59,13 @@ public class Turma {
     public void setAtivo(boolean isAtivo) {
         this.isAtivo = isAtivo;
     }
+
+    @Override
+    public String toString() {
+        return "===== TURMA =====\n" +
+                "Nome: " + nomeTurma + "\n" +
+                "Quantidade de Alunos: " + qtdALunos + "\n" +
+                "Turno: " + turno + "\n" +
+                "Ativa: " + isAtivo;
+    }
 }
