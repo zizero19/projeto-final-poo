@@ -1,105 +1,86 @@
-package view;
+// package view;
 
-import javax.swing.JOptionPane;
+// import javax.swing.JOptionPane;
 
-import model.Caixa;
-import repository.CaixaRepository;
+// import app.Contexto;
+// import model.Caixa;
+// import repository.CaixaRepository;
 
-public class MenuCaixa {
-    CaixaRepository caixaRepository = new CaixaRepository();
+// public class MenuCaixa {
+// private Contexto contexto;
 
-    public void menu() {
-        int opcao = -1;
+// public MenuCaixa(Contexto contexto) {
+// this.contexto = contexto;
+// }
 
-        do {
-            try {
-                String entrada = javax.swing.JOptionPane.showInputDialog(
-                        "========= MENU CAIXA =========\n"
-                                + "1 - Abrir\n"
-                                + "2 - Salvar\n"
-                                + "3 - Listar\n"
-                                + "4 - Buscar por ID\n"
-                                + "0 - Voltar\n\n"
-                                + "Escolha uma opção:");
+// public void menu() {
+// int opcao = -1;
 
-                // Cancelou ou fechou a janela
-                if (entrada == null) {
-                    break;
-                }
+// do {
+// opcao = Integer.parseInt(JOptionPane.showInputDialog(
+// "========= MENU CAIXA =========\n"
+// + "1 - Abrir Caixa\n"
+// + "2 - Fechar Caixa\n"
+// + "3 - Listar Caixas Fechados\n"
+// + "4 - Buscar por ID\n"
+// + "5 - Listar Pedidos do Caixa Atual\n"
+// + "0 - Voltar\n\n"
+// + "Escolha uma opção:"));
 
-                // Não digitou nada
-                if (entrada.trim().isEmpty()) {
-                    javax.swing.JOptionPane.showMessageDialog(
-                            null,
-                            "Digite uma opção!",
-                            "Aviso",
-                            javax.swing.JOptionPane.WARNING_MESSAGE);
-                    continue;
-                }
+// switch (opcao) {
 
-                opcao = Integer.parseInt(entrada);
+// case 1:
 
-                switch (opcao) {
+// int id = Integer.parseInt(
+// JOptionPane.showInputDialog("Digite o ID do caixa:"));
 
-                    case 1:
+// int qtdMaxClientes = Integer.parseInt(
+// JOptionPane.showInputDialog("Quantidade máxima de clientes:"));
 
-                        int id = Integer.parseInt(
-                                JOptionPane.showInputDialog("Digite o ID do caixa:"));
+// Caixa caixa = new Caixa(qtdMaxClientes);
+// caixa.setId(id);
 
-                        int qtdMaxClientes = Integer.parseInt(
-                                JOptionPane.showInputDialog("Quantidade máxima de clientes:"));
+// caixaRepository.abrirCaixa(caixa);
 
-                        Caixa caixa = new Caixa(qtdMaxClientes);
-                        caixa.setId(id);
+// break;
 
-                        caixaRepository.abrirCaixa(caixa);
+// case 2:
 
-                        break;
+// int idFechar = Integer.parseInt(
+// JOptionPane.showInputDialog("Digite o ID do caixa:"));
 
-                
-                    case 2:
+// caixaRepository.fecharCaixa(idFechar);
 
-                        int idFechar = Integer.parseInt(
-                                JOptionPane.showInputDialog("Digite o ID do caixa:"));
+// break;
 
-                        caixaRepository.fecharCaixa(idFechar);
+// case 3:
+// caixaRepository.listar();
+// break;
 
-                        break;
+// case 4:
+// int idd = Integer
+// .parseInt(JOptionPane.showInputDialog("Digite o ID do caixa que deseja
+// buscar"));
+// caixaRepository.buscarPorId(idd);
+// break;
 
-                    case 3:
-                        caixaRepository.listar();
-                        break;
+// case 0:
+// javax.swing.JOptionPane.showMessageDialog(
+// null,
+// "Voltando ao menu principal.",
+// "Informação",
+// javax.swing.JOptionPane.INFORMATION_MESSAGE);
+// break;
 
-                    case 4:
-                        int idd = Integer
-                                .parseInt(JOptionPane.showInputDialog("Digite o ID do caixa que deseja buscar"));
-                        caixaRepository.buscarPorId(idd);
-                        break;
+// default:
+// javax.swing.JOptionPane.showMessageDialog(
+// null,
+// "Opção inválida! Tente novamente.",
+// "Erro",
+// javax.swing.JOptionPane.ERROR_MESSAGE);
+// }
+// } while (opcao != 0);
 
-                    case 0:
-                        javax.swing.JOptionPane.showMessageDialog(
-                                null,
-                                "Voltando ao menu principal.",
-                                "Informação",
-                                javax.swing.JOptionPane.INFORMATION_MESSAGE);
-                        break;
+// }
 
-                    default:
-                        javax.swing.JOptionPane.showMessageDialog(
-                                null,
-                                "Opção inválida! Tente novamente.",
-                                "Erro",
-                                javax.swing.JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (NumberFormatException e) {
-                javax.swing.JOptionPane.showMessageDialog(
-                        null,
-                        "Digite um número válido!",
-                        "Erro",
-                        javax.swing.JOptionPane.ERROR_MESSAGE);
-            }
-        } while (opcao != 0);
-
-    }
-
-}
+// }

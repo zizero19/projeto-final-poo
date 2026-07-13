@@ -40,11 +40,11 @@ public class MenuPrincipal {
                     break;
 
                 case 4:
-                    new MenuCaixa().menu();
+                    // new MenuCaixa().menu();
                     break;
 
                 case 5:
-                    new MenuTurma().menu();
+                    new MenuTurma(contexto).menu();
                     break;
 
                 case 0:

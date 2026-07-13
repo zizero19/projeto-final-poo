@@ -11,78 +11,47 @@ public class MenuCliente {
     private ClienteRepository repository = new ClienteRepository();
 
     public void menu() {
+        int opcao;
 
-      int opcao = -1;
+        do {
+            opcao = Integer.parseInt(JOptionPane.showInputDialog(
+                    "========= MENU CLIENTE =========\n"
+                            + "1 - Cadastrar Cliente\n"
+                            + "2 - Listar Clientes\n"
+                            + "3 - Buscar Cliente por CPF\n"
+                            + "4 - Remover Cliente por CPF\n"
+                            + "0 - Voltar\n\n"
+                            + "Escolha uma opção:"));
 
-do {
+            switch (opcao) {
 
-    try {
+                case 1:
+                    cadastrar();
+                    break;
 
-        String entrada = JOptionPane.showInputDialog(
-                "========= MENU CLIENTE =========\n"
-                + "1 - Cadastrar\n"
-                + "2 - Listar\n"
-                + "3 - Buscar por CPF\n"
-                + "4 - Remover\n"
-                + "0 - Voltar\n\n"
-                + "Escolha uma opção:");
+                case 2:
+                    listar();
+                    break;
 
-        // Cancelou ou fechou a janela
-        if (entrada == null) {
-            break;
-        }
+                case 3:
+                    buscar();
+                    break;
 
-        // Não digitou nada
-        if (entrada.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "Digite uma opção!",
-                    "Aviso",
-                    JOptionPane.WARNING_MESSAGE
-            );
-            continue;
-        }
+                case 4:
+                    remover();
+                    break;
 
-        opcao = Integer.parseInt(entrada);
+                case 0:
+                    JOptionPane.showMessageDialog(null, "Voltando ao menu principal...");
+                    break;
 
-        switch (opcao) {
+                default:
+                    JOptionPane.showMessageDialog(null, "Opção inválida.");
+            }
 
-            case 1:
-                cadastrar();
-                break;
+        } while (opcao != 0);
 
-            case 2:
-                listar();
-                break;
-
-            case 3:
-                buscar();
-                break;
-
-            case 4:
-                remover();
-                break;
-
-            case 0:
-                JOptionPane.showMessageDialog(null, "Voltando ao menu principal...");
-                break;
-
-            default:
-                JOptionPane.showMessageDialog(null, "Opção inválida.");
-        }
-
-    } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(
-                null,
-                "Digite apenas números!",
-                "Erro",
-                JOptionPane.ERROR_MESSAGE
-        );
     }
-
-} while (opcao != 0);
-}
-    // rever os dados do metodo cadastro se de fato sao esses
 
     private void cadastrar() {
 
@@ -123,27 +92,24 @@ do {
         Cliente cliente = repository.buscarPorCpf(cpf);
 
         if (cliente != null) {
-        JOptionPane.showMessageDialog(null, "Cliente encontrado:\n" + cliente.toString());
+            JOptionPane.showMessageDialog(null, "Cliente encontrado:\n" + cliente.toString());
         } else {
-          JOptionPane.showMessageDialog(null, "Cliente não encontrado.");
+            JOptionPane.showMessageDialog(null, "Cliente não encontrado.");
         }
 
     }
 
-    
-      private void remover() {
-      
-      String cpf = JOptionPane.showInputDialog("CPF:  ");
+    private void remover() {
+
+        String cpf = JOptionPane.showInputDialog("CPF:  ");
         Cliente cliente = repository.buscarPorCpf(cpf);
-      
-      if (repository.remover(cpf)) {
-        JOptionPane.showMessageDialog(null, "Cliente encontrado: \n" + cliente.toString());
-      JOptionPane.showMessageDialog(null, "Cliente removido com sucesso!");
-      } else {
-        JOptionPane.showMessageDialog(null, "Cliente não encontrado.");
-      }
-      }
-     
-     
-    
+
+        if (repository.remover(cpf)) {
+            JOptionPane.showMessageDialog(null, "Cliente encontrado: \n" + cliente.toString());
+            JOptionPane.showMessageDialog(null, "Cliente removido com sucesso!");
+        } else {
+            JOptionPane.showMessageDialog(null, "Cliente não encontrado.");
+        }
+    }
+
 }

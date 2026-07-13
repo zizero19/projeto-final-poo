@@ -90,18 +90,17 @@ public class MenuProduto {
         novoProduto.setPreco(preco);
         novoProduto.setQuantidadeEstoque(quantidadeEstoque);
 
-        Produto produtoExistente = contexto.getProdutoRepository().buscarProdutoPorId(id);
+        Produto produtoExistente = contexto.getProdutoRepository().buscarPorId(id);
         if (produtoExistente != null) {
             JOptionPane.showMessageDialog(null, "Produto com ID " + id + " já existe.");
             return;
         }
 
-        contexto.getProdutoRepository().adicionarProduto(novoProduto);
+        contexto.getProdutoRepository().salvarProduto(novoProduto);
         JOptionPane.showMessageDialog(null, "Produto cadastrado com sucesso!");
     }
 
     public void listarProdutos() {
-
         List<Produto> produtos = contexto.getProdutoRepository().listarProdutos();
 
         if (produtos.isEmpty()) {
@@ -140,7 +139,7 @@ public class MenuProduto {
     public void buscarProduto() {
         int id = Integer.parseInt(JOptionPane.showInputDialog("Digite o ID do produto a ser buscado:"));
 
-        Produto produto = contexto.getProdutoRepository().buscarProdutoPorId(id);
+        Produto produto = contexto.getProdutoRepository().buscarPorId(id);
 
         if (produto != null) {
             JOptionPane.showMessageDialog(null,
@@ -156,11 +155,10 @@ public class MenuProduto {
     }
 
     public void atualizarProduto() {
-
         int id = Integer.parseInt(
                 JOptionPane.showInputDialog("Digite o ID do produto:"));
 
-        Produto produto = contexto.getProdutoRepository().buscarProdutoPorId(id);
+        Produto produto = contexto.getProdutoRepository().buscarPorId(id);
 
         if (produto == null) {
             JOptionPane.showMessageDialog(null,
@@ -169,12 +167,9 @@ public class MenuProduto {
         }
 
         JTextField txtNome = new JTextField(produto.getNome());
-
         JComboBox<CategoriaProduto> cbCategoria = new JComboBox<>(CategoriaProduto.values());
         cbCategoria.setSelectedItem(produto.getCategoria());
-
         JTextField txtPreco = new JTextField(String.valueOf(produto.getPreco()));
-
         JTextField txtEstoque = new JTextField(String.valueOf(produto.getQuantidadeEstoque()));
 
         JPanel painel = new JPanel(new GridLayout(4, 2, 5, 5));
@@ -199,30 +194,22 @@ public class MenuProduto {
                 JOptionPane.PLAIN_MESSAGE);
 
         if (opcao == JOptionPane.OK_OPTION) {
-
             produto.setNome(txtNome.getText());
+            produto.setCategoria((CategoriaProduto) cbCategoria.getSelectedItem());
+            produto.setPreco(Double.parseDouble(txtPreco.getText()));
+            produto.setQuantidadeEstoque(Integer.parseInt(txtEstoque.getText()));
 
-            produto.setCategoria(
-                    (CategoriaProduto) cbCategoria.getSelectedItem());
-
-            produto.setPreco(
-                    Double.parseDouble(txtPreco.getText()));
-
-            produto.setQuantidadeEstoque(
-                    Integer.parseInt(txtEstoque.getText()));
-
-            JOptionPane.showMessageDialog(null,
-                    "Produto atualizado com sucesso!");
+            JOptionPane.showMessageDialog(null, "Produto atualizado com sucesso!");
         }
     }
 
     public void removerProduto() {
         int id = Integer.parseInt(JOptionPane.showInputDialog("Digite o ID do produto a ser removido:"));
 
-        Produto produto = contexto.getProdutoRepository().buscarProdutoPorId(id);
+        Produto produto = contexto.getProdutoRepository().buscarPorId(id);
 
         if (produto != null) {
-            contexto.getProdutoRepository().removerProduto(id);
+            contexto.getProdutoRepository().excluirProduto(id);
             JOptionPane.showMessageDialog(null, "Produto com ID " + id + " removido com sucesso.");
         } else {
             JOptionPane.showMessageDialog(null, "Produto com ID " + id + " não encontrado.");
@@ -230,26 +217,36 @@ public class MenuProduto {
     }
 
     public CategoriaProduto lerCategoria() {
+        String[] opcoes = {
+                "Salgado",
+                "Doce",
+                "Bebida",
+                "Gelados",
+                "Salgadinhos"
+        };
+
         while (true) {
 
-            int opcao = Integer.parseInt(JOptionPane.showInputDialog(null,
-                    "Escolha a categoria:" +
-                            "\n1 - Salgado" +
-                            "\n2 - Doce" +
-                            "\n3 - Bebida" +
-                            "\n4 - Gelados" +
-                            "\n5 - Salgadinhos"));
+            int opcao = JOptionPane.showOptionDialog(
+                    null,
+                    "Escolha a categoria:",
+                    "Categoria",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.INFORMATION_MESSAGE,
+                    null,
+                    opcoes,
+                    opcoes[0]);
 
             switch (opcao) {
-                case 1:
+                case 0:
                     return CategoriaProduto.SALGADO;
-                case 2:
+                case 1:
                     return CategoriaProduto.DOCE;
-                case 3:
+                case 2:
                     return CategoriaProduto.BEBIDA;
-                case 4:
+                case 3:
                     return CategoriaProduto.GELADOS;
-                case 5:
+                case 4:
                     return CategoriaProduto.SALGADINHOS;
                 default:
                     JOptionPane.showMessageDialog(null, "Categoria inválida.");
