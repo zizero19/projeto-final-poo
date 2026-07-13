@@ -32,14 +32,14 @@ public class TurmaRepository {
         return turmas;
     }
 
+
+    // ver soluçao usando objeto para nao dar erro
     public Turma buscarPorId(int id) {
         for (Turma turma : turmas) {
             if (turma.getId() == id) {
                 return turma;
-            } else {
-                JOptionPane.showMessageDialog(null, "Turma com ID " + id + " não encontrada.", "Erro",
-                        JOptionPane.ERROR_MESSAGE);
-            }
+            } 
+           
         }
         return null;
     }

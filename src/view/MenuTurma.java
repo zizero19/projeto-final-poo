@@ -35,8 +35,9 @@ public class MenuTurma {
                             + "2 - Listar Turmas\n"
                             + "3 - Buscar Turma por ID\n"
                             + "4 - Atualizar Turma\n"
-                            + "5 - Inativar Turma\n"
-                            + "6 - Excluir Turma\n"
+                            + "5 - Inativar Turma\n"// fazer
+                            + "6 - Excluir Turma\n"// fazer
+                            + "7 - Buscar por  Nome\n"// fazer
                             + "0 - Voltar\n\n"
                             + "Escolha uma opção:"));
 
@@ -56,6 +57,19 @@ public class MenuTurma {
 
                 case 4:
                     atualizarTurma();
+                    break;
+
+                case 5:
+                    inativarTurma();
+
+                    break;
+                case 6:
+                    excluirTurma();
+
+                    break;
+                case 7:
+                     lerFormaBusca();
+
                     break;
 
                 case 0:
@@ -161,7 +175,7 @@ public class MenuTurma {
         JTextField txtQtdAlunos = new JTextField(String.valueOf(turma.getQtdALunos()));
         JComboBox<Turno> comboTurno = new JComboBox<>(Turno.values());
         comboTurno.setSelectedItem(turma.getTurno());
-        JCheckBox chkAtivo = new JCheckBox("Ativo", turma.isAtivo());
+        JCheckBox chkAtivo = new JCheckBox("Ativo/Desativado", turma.isAtivo());
         chkAtivo.setSelected(turma.isAtivo());
 
         JPanel painel = new JPanel(new GridLayout(0, 1));
@@ -224,4 +238,136 @@ public class MenuTurma {
             }
         }
     }
+
+    public void inativarTurma() {
+        int id = Integer.parseInt(JOptionPane.showInputDialog("Digite o ID da turma a ser buscada:"));
+
+        Turma turma = contexto.getTurmaRepository().buscarPorId(id);
+
+        if (turma == null) {
+            JOptionPane.showMessageDialog(null, "Turma não encontrada para inativar.");
+        } else {
+            turma.setAtivo(false);
+            JOptionPane.showMessageDialog(null, "Turma inativada com sucesso!");
+
+        }
+    }
+
+    public void excluirTurma() {
+
+        int id = Integer.parseInt(JOptionPane.showInputDialog("Digite o ID da turma a ser excluída:"));
+
+        Turma turma = contexto.getTurmaRepository().buscarPorId(id);
+
+        if (turma == null) {
+            JOptionPane.showMessageDialog(null, "Turma não encontrada para exclusão.");
+        } else {
+            contexto.getTurmaRepository().excluirTurma(id);
+            JOptionPane.showMessageDialog(null, "Turma excluída com sucesso!");
+        }
+    }
+
+   public void buscaPorNome() {
+
+    String nome = JOptionPane.showInputDialog("Digite o nome da turma a ser buscada:");
+
+    List<Turma> turmas = contexto.getTurmaRepository().listarTurmas();
+
+    boolean encontrou = false;
+
+    String pesquisa = nome.toLowerCase();
+
+    StringBuilder resultado = new StringBuilder();
+
+    for (Turma turma : turmas) {
+
+        String nomeTurma = turma.getNomeTurma().toLowerCase();
+
+        boolean corresponde = false;
+
+        String[] palavras = pesquisa.split(" ");
+
+        for (String palavra : palavras) {
+            if (nomeTurma.contains(palavra)) {
+                corresponde = true;
+                break;
+            }
+        }
+
+        if (corresponde) {
+
+            resultado.append("ID: ").append(turma.getId()).append("\n")
+                     .append("Nome: ").append(turma.getNomeTurma()).append("\n")
+                     .append("Quantidade de Alunos: ").append(turma.getQtdALunos()).append("\n")
+                     .append("Turno: ").append(turma.getTurno()).append("\n")
+                     .append("Está Ativa? ").append(turma.isAtivo() ? "Sim" : "Não")
+                     .append("\n")
+                     .append("----------------------------------\n");
+
+            encontrou = true;
+        }
+    }
+
+    if (encontrou) {
+        JOptionPane.showMessageDialog(null, resultado.toString());
+    } else {
+        JOptionPane.showMessageDialog(null, "Turma não encontrada.");
+    }
+}
+
+
+public void buscaPorId() {
+    int id = Integer.parseInt(JOptionPane.showInputDialog("Digite o ID da turma a ser buscada:"));
+
+    Turma turma = contexto.getTurmaRepository().buscarPorId(id);
+
+    if (turma != null) {
+        JOptionPane.showMessageDialog(null,
+                "Turma encontrada:\n"
+                        + "ID: " + turma.getId() + "\n"
+                        + "Nome: " + turma.getNomeTurma() + "\n"
+                        + "Quantidade de Alunos: " + turma.getQtdALunos() + "\n"
+                        + "Turno: " + turma.getTurno() + "\n"
+                        + "Está Ativa? " + (turma.isAtivo() ? "Sim" : "Não"));
+    } else {
+        JOptionPane.showMessageDialog(null, "Turma não encontrada.");
+    }
+}
+
+    public void lerFormaBusca() {
+        String[] opcoes = {
+                "Buscar por Nome", "Buscar por Id","Sair" };
+        while (true) {
+            int escolha = JOptionPane.showOptionDialog(
+                    null,
+                    "Escolha a forma de busca de Turma",
+                    "Busca Turma",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.INFORMATION_MESSAGE,
+                    null,
+                    opcoes,
+                    opcoes[0]);
+
+            switch (escolha) {
+                case 0:
+                    buscaPorNome();
+                    break;
+
+                case 1:
+                    buscaPorId();
+                    break;
+
+                     case 2:
+                    JOptionPane.showMessageDialog(null, "Saindo da busca de Turma.");
+                    menu();
+                    break;
+
+
+                default:
+                    break;
+            }
+        }
+
+    }
+
 }

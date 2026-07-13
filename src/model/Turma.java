@@ -59,4 +59,6 @@ public class Turma {
     public void setAtivo(boolean isAtivo) {
         this.isAtivo = isAtivo;
     }
+
+
 }
