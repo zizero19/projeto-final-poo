@@ -1,23 +1,35 @@
 package repository;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.JOptionPane;
+
 import model.Cliente;
 
 public class ClienteRepository {
-
-    private ArrayList<Cliente> clientes;
+    private List<Cliente> clientes;
 
     public ClienteRepository() {
         this.clientes = new ArrayList<>();
     }
 
-    // CREATE
-    public void adicionar(Cliente cliente) {
+    public void salvarCliente(Cliente cliente) {
+        if (cliente == null) {
+            JOptionPane.showMessageDialog(null, "Cliente não pode ser nulo.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (buscarPorCpf(cliente.getCpf()) != null) {
+            JOptionPane.showMessageDialog(null, "Cliente com CPF " + cliente.getCpf() + " já existe.", "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         clientes.add(cliente);
     }
 
-    // READ
-    public ArrayList<Cliente> listar() {
+    public List<Cliente> listarClientes() {
         return clientes;
     }
 
@@ -30,40 +42,14 @@ public class ClienteRepository {
         return null;
     }
 
-    public Cliente buscarPorMatricula(String matricula) {
-        for (Cliente cliente : clientes) {
-            if (cliente.getTurmaMatriculada() != null && cliente.getTurmaMatriculada().getNomeTurma().equals(matricula)) {
-                return cliente;
-            }
-        }
-        return null;
-    }
-
-    // UPDATE
-    public boolean atualizar(String cpf, Cliente novoCliente) {
-        Cliente cliente = buscarPorCpf(cpf);
-
-        if (cliente != null) {
-            cliente.setNome(novoCliente.getNome());
-            cliente.setCpf(novoCliente.getCpf());
-            cliente.setEmail(novoCliente.getEmail());
-            cliente.setTurmaMatriculada(novoCliente.getTurmaMatriculada());
-            cliente.setTelefone(novoCliente.getTelefone());
-            return true;
-        }
-
-        return false;
-    }
-
-    // DELETE
-    public boolean remover(String cpf) {
+    public void excluirCliente(String cpf) {
         Cliente cliente = buscarPorCpf(cpf);
 
         if (cliente != null) {
             clientes.remove(cliente);
-            return true;
+        } else {
+            JOptionPane.showMessageDialog(null, "Cliente não encontrado.", "Erro", JOptionPane.ERROR_MESSAGE);
         }
 
-        return false;
     }
 }

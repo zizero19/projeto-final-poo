@@ -2,66 +2,63 @@ package repository;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JOptionPane;
 
 import model.Caixa;
 
 public class CaixaRepository {
-    private ArrayList<Caixa> caixas;
+    private List<Caixa> caixas;
 
     public CaixaRepository() {
         this.caixas = new ArrayList<>();
     }
 
-   public void abrirCaixa(Caixa caixa) {
+    public void abrirCaixa(Caixa caixa) {
+        if (caixa == null) {
+            JOptionPane.showMessageDialog(null, "Caixa não pode ser nulo.");
+            return;
+        }
 
-    if (caixa == null) {
-        JOptionPane.showMessageDialog(null, "Caixa não pode ser nulo.");
-        return;
+        caixa.abrir();
+
+        caixas.add(caixa);
+
+        JOptionPane.showMessageDialog(null,
+                "Caixa aberto com sucesso!\n\n" +
+                        "Data/Hora de abertura: " + caixa.getAbertura());
     }
-
-    caixa.abrir(); // Grava a data e hora atuais
-
-    caixas.add(caixa);
-
-    JOptionPane.showMessageDialog(null,
-            "Caixa aberto com sucesso!\n\n" +
-            "Data/Hora de abertura: " + caixa.getAbertura());
-}
-
-
-
-
 
     public void fecharCaixa(int id) {
 
-    for (Caixa caixa : caixas) {
+        for (Caixa caixa : caixas) {
 
-        if (caixa.getId() == id) {
+            if (caixa.getId() == id) {
 
-            if (!caixa.isAberto()) {
+                if (!caixa.isAberto()) {
+                    JOptionPane.showMessageDialog(null,
+                            "Este caixa já está fechado.");
+                    return;
+                }
+
+                caixa.fechar();
+
                 JOptionPane.showMessageDialog(null,
-                        "Este caixa já está fechado.");
+                        "Caixa fechado com sucesso!\n\n" +
+                                "Data/Hora de fechamento: " + caixa.getFechamento() +
+                                "\nTotal de vendas: R$ " + String.format("%.2f", caixa.getTotalVendas()) +
+                                "\nQuantidade de pedidos: " + caixa.getPedidos().size());
+
                 return;
             }
-
-            caixa.fechar(); // Grava a data e hora atuais
-
-            JOptionPane.showMessageDialog(null,
-                    "Caixa fechado com sucesso!\n\n" +
-                    "Data/Hora de fechamento: " + caixa.getFechamento() +
-                    "\nTotal de vendas: R$ " + String.format("%.2f", caixa.getTotalVendas()) +
-                    "\nQuantidade de pedidos: " + caixa.getPedidos().size());
-
-            return;
         }
+
+        JOptionPane.showMessageDialog(null,
+                "Caixa não encontrado.");
     }
 
-    JOptionPane.showMessageDialog(null,
-            "Caixa não encontrado.");
-}
-    public void listar() {
+    public void listarCaixas() {
         if (caixas.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Nenhum caixa cadastrado.");
             return;

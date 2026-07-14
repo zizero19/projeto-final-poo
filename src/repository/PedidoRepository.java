@@ -1,6 +1,7 @@
 package repository;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JOptionPane;
 
@@ -8,13 +9,13 @@ import model.Pedido;
 import model.enums.StatusPedido;
 
 public class PedidoRepository {
-    private ArrayList<Pedido> pedidos;
+    private List<Pedido> pedidos;
 
     public PedidoRepository() {
         this.pedidos = new ArrayList<>();
     }
 
-    public void salvar(Pedido pedido) {
+    public void salvarPedido(Pedido pedido) {
         if (pedido == null) {
             JOptionPane.showMessageDialog(null, "Pedido não pode ser nulo.", "Erro", JOptionPane.ERROR_MESSAGE);
             return;
@@ -35,6 +36,10 @@ public class PedidoRepository {
         pedidos.add(pedido);
     }
 
+    public List<Pedido> listarPedidos() {
+        return pedidos;
+    }
+
     public Pedido buscarPorId(int id) {
         for (Pedido pedido : pedidos) {
             if (pedido.getId() == id) {
@@ -44,6 +49,4 @@ public class PedidoRepository {
         return null;
     }
 
-    // atualizar
-    // excluir
 }
