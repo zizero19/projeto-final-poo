@@ -20,7 +20,7 @@ public class TurmaRepository {
             return;
         }
 
-        if (buscarPorId(turma.getId()) != null) {
+        if (buscarTurma(turma.getId()) != null) {
             JOptionPane.showMessageDialog(null, "Turma com ID " + turma.getId() + " já existe.", "Erro",
                     JOptionPane.ERROR_MESSAGE);
             return;
@@ -33,20 +33,27 @@ public class TurmaRepository {
         return turmas;
     }
 
-
-    // ver soluçao usando objeto para nao dar erro
-    public Turma buscarPorId(int id) {
+    public Turma buscarTurma(int id) {
         for (Turma turma : turmas) {
             if (turma.getId() == id) {
                 return turma;
-            } 
-           
+            }
+
+        }
+        return null;
+    }
+
+    public Turma buscarTurma(String nome) {
+        for (Turma turma : turmas) {
+            if (nome.equalsIgnoreCase(turma.getNomeTurma())) {
+                return turma;
+            }
         }
         return null;
     }
 
     public void excluirTurma(int id) {
-        Turma turma = buscarPorId(id);
+        Turma turma = buscarTurma(id);
         if (turma != null) {
             turmas.remove(turma);
         } else {
