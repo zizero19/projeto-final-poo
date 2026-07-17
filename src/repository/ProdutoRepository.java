@@ -20,7 +20,7 @@ public class ProdutoRepository {
             return;
         }
 
-        if (buscarPorId(produto.getId()) != null) {
+        if (buscarProduto(produto.getId()) != null) {
             JOptionPane.showMessageDialog(null, "Produto com ID " + produto.getId() + " já existe.", "Erro",
                     JOptionPane.ERROR_MESSAGE);
             return;
@@ -33,7 +33,7 @@ public class ProdutoRepository {
         return produtos;
     }
 
-    public Produto buscarPorId(int id) {
+    public Produto buscarProduto(int id) {
         for (Produto produto : produtos) {
             if (produto.getId() == id) {
                 return produto;
@@ -45,8 +45,20 @@ public class ProdutoRepository {
         return null;
     }
 
+    public Produto buscarProduto(String nome) {
+        for (Produto produto : produtos) {
+            if (produto.getNome().equalsIgnoreCase(nome)) {
+                return produto;
+            } else {
+                JOptionPane.showMessageDialog(null, "Produto com Nome '" + nome + "'' não encontrado.", "Erro",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        return null;
+    }
+
     public void excluirProduto(int id) {
-        Produto produto = buscarPorId(id);
+        Produto produto = buscarProduto(id);
 
         if (produto != null) {
             produtos.remove(produto);

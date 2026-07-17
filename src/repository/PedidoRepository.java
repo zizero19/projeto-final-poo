@@ -49,4 +49,16 @@ public class PedidoRepository {
         return null;
     }
 
+    public List<Pedido> buscarPedidosPorCpfDeCliente(String cpf) {
+        List<Pedido> pedidosEncontrados = new ArrayList<>();
+
+        for (Pedido pedido : pedidos) {
+            if (pedido.getCliente().getCpf().equalsIgnoreCase(cpf)) {
+                pedidosEncontrados.add(pedido);
+            }
+        }
+
+        return pedidosEncontrados;
+    }
+
 }

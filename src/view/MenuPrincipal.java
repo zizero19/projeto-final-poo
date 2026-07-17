@@ -28,7 +28,7 @@ public class MenuPrincipal {
             switch (opcao) {
 
                 case 1:
-                    new MenuCliente().menu();
+                    new MenuCliente(contexto).menu();
                     break;
 
                 case 2:

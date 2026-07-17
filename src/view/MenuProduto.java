@@ -18,7 +18,6 @@ import model.Produto;
 import model.enums.CategoriaProduto;
 
 public class MenuProduto {
-
     private Contexto contexto;
 
     public MenuProduto(Contexto contexto) {
@@ -51,7 +50,7 @@ public class MenuProduto {
                     break;
 
                 case 3:
-                    buscarProduto();
+                    lerFormaBusca();
                     break;
 
                 case 4:
@@ -90,7 +89,7 @@ public class MenuProduto {
         novoProduto.setPreco(preco);
         novoProduto.setQuantidadeEstoque(quantidadeEstoque);
 
-        Produto produtoExistente = contexto.getProdutoRepository().buscarPorId(id);
+        Produto produtoExistente = contexto.getProdutoRepository().buscarProduto(id);
         if (produtoExistente != null) {
             JOptionPane.showMessageDialog(null, "Produto com ID " + id + " já existe.");
             return;
@@ -136,21 +135,39 @@ public class MenuProduto {
         JOptionPane.showMessageDialog(null, scroll);
     }
 
-    public void buscarProduto() {
+    public void buscarProdutoPorId() {
         int id = Integer.parseInt(JOptionPane.showInputDialog("Digite o ID do produto a ser buscado:"));
 
-        Produto produto = contexto.getProdutoRepository().buscarPorId(id);
+        Produto produtoBuscado = contexto.getProdutoRepository().buscarProduto(id);
 
-        if (produto != null) {
+        if (produtoBuscado != null) {
             JOptionPane.showMessageDialog(null,
                     "Produto encontrado:\n" +
-                            "ID: " + produto.getId() + "\n" +
-                            "Nome: " + produto.getNome() + "\n" +
-                            "Categoria: " + produto.getCategoria() + "\n" +
-                            "Preço: " + produto.getPreco() + "\n" +
-                            "Estoque: " + produto.getQuantidadeEstoque());
+                            "ID: " + produtoBuscado.getId() + "\n" +
+                            "Nome: " + produtoBuscado.getNome() + "\n" +
+                            "Categoria: " + produtoBuscado.getCategoria() + "\n" +
+                            "Preço: " + produtoBuscado.getPreco() + "\n" +
+                            "Estoque: " + produtoBuscado.getQuantidadeEstoque());
         } else {
             JOptionPane.showMessageDialog(null, "Produto com ID " + id + " não encontrado.");
+        }
+    }
+
+    public void buscarProdutoPorNome() {
+        String nome = JOptionPane.showInputDialog(null, "Insira o nome do Produto:");
+
+        Produto produtoBuscado = contexto.getProdutoRepository().buscarProduto(nome);
+
+        if (produtoBuscado != null) {
+            JOptionPane.showMessageDialog(null,
+                    "Produto encontrado:\n" +
+                            "ID: " + produtoBuscado.getId() + "\n" +
+                            "Nome: " + produtoBuscado.getNome() + "\n" +
+                            "Categoria: " + produtoBuscado.getCategoria() + "\n" +
+                            "Preço: " + produtoBuscado.getPreco() + "\n" +
+                            "Estoque: " + produtoBuscado.getQuantidadeEstoque());
+        } else {
+            JOptionPane.showMessageDialog(null, "Produto com Nome '" + nome + "'' não encontrado.");
         }
     }
 
@@ -158,7 +175,7 @@ public class MenuProduto {
         int id = Integer.parseInt(
                 JOptionPane.showInputDialog("Digite o ID do produto:"));
 
-        Produto produto = contexto.getProdutoRepository().buscarPorId(id);
+        Produto produto = contexto.getProdutoRepository().buscarProduto(id);
 
         if (produto == null) {
             JOptionPane.showMessageDialog(null,
@@ -206,7 +223,7 @@ public class MenuProduto {
     public void removerProduto() {
         int id = Integer.parseInt(JOptionPane.showInputDialog("Digite o ID do produto a ser removido:"));
 
-        Produto produto = contexto.getProdutoRepository().buscarPorId(id);
+        Produto produto = contexto.getProdutoRepository().buscarProduto(id);
 
         if (produto != null) {
             contexto.getProdutoRepository().excluirProduto(id);
@@ -252,5 +269,36 @@ public class MenuProduto {
                     JOptionPane.showMessageDialog(null, "Categoria inválida.");
             }
         }
+    }
+
+    public void lerFormaBusca() {
+        String[] opcoes = {
+                "Buscar por Nome", "Buscar por Id", "Sair" };
+        while (true) {
+            int escolha = JOptionPane.showOptionDialog(
+                    null,
+                    "Escolha a forma de busca do Produto",
+                    "Buscar Produto",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.INFORMATION_MESSAGE,
+                    null,
+                    opcoes,
+                    opcoes[0]);
+
+            switch (escolha) {
+                case 0:
+                    buscarProdutoPorNome();
+                    break;
+
+                case 1:
+                    buscarProdutoPorId();
+                    break;
+
+                case 2:
+                    JOptionPane.showMessageDialog(null, "Saindo da busca de Turma.");
+                    return;
+            }
+        }
+
     }
 }

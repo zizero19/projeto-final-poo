@@ -93,10 +93,9 @@ public class Caixa {
         this.qtdMaxClientes = qtdMaxClientes;
     }
 
-    public void abrir() {
+    public boolean abrir() {
         if (isAberto) {
-            System.out.println("O caixa já está aberto.");
-            return;
+            return false;
         }
 
         this.pedidos = new ArrayList<>();
@@ -104,6 +103,7 @@ public class Caixa {
         this.isAberto = true;
         this.abertura = LocalDateTime.now();
         this.fechamento = null;
+        return true;
     }
 
     public void fechar() {

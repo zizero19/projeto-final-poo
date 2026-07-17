@@ -4,8 +4,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.JOptionPane;
-
 import model.Caixa;
 
 public class CaixaRepository {
@@ -15,87 +13,56 @@ public class CaixaRepository {
         this.caixas = new ArrayList<>();
     }
 
-    public void abrirCaixa(Caixa caixa) {
+    public boolean salvarCaixa(Caixa caixa) {
         if (caixa == null) {
-            JOptionPane.showMessageDialog(null, "Caixa não pode ser nulo.");
-            return;
+            return false;
         }
 
-        caixa.abrir();
+        if (!caixa.isAberto()) {
+            return false;
+        }
 
         caixas.add(caixa);
-
-        JOptionPane.showMessageDialog(null,
-                "Caixa aberto com sucesso!\n\n" +
-                        "Data/Hora de abertura: " + caixa.getAbertura());
+        return true;
     }
 
-    public void fecharCaixa(int id) {
-
-        for (Caixa caixa : caixas) {
-
-            if (caixa.getId() == id) {
-
-                if (!caixa.isAberto()) {
-                    JOptionPane.showMessageDialog(null,
-                            "Este caixa já está fechado.");
-                    return;
-                }
-
-                caixa.fechar();
-
-                JOptionPane.showMessageDialog(null,
-                        "Caixa fechado com sucesso!\n\n" +
-                                "Data/Hora de fechamento: " + caixa.getFechamento() +
-                                "\nTotal de vendas: R$ " + String.format("%.2f", caixa.getTotalVendas()) +
-                                "\nQuantidade de pedidos: " + caixa.getPedidos().size());
-
-                return;
-            }
-        }
-
-        JOptionPane.showMessageDialog(null,
-                "Caixa não encontrado.");
-    }
-
-    public void listarCaixas() {
+    public List<Caixa> listarCaixas() {
         if (caixas.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Nenhum caixa cadastrado.");
-            return;
+            return null;
         }
 
-        for (Caixa caixa : caixas) {
-            JOptionPane.showMessageDialog(null, caixa);
-        }
+        return caixas;
     }
 
-    public void buscarPorId(int id) {
+    public Caixa buscarPorId(int id) {
         for (Caixa caixa : caixas) {
             if (caixa.getId() == id) {
-                JOptionPane.showMessageDialog(null, "Caixa encontrado:\n" + caixa);
-                return;
+                return caixa;
             }
         }
-        JOptionPane.showMessageDialog(null, "Caixa com ID " + id + " não encontrado.");
+
+        return null;
     }
 
-    public void buscarPorData(LocalDate data) {
-
-        boolean encontrou = false;
-
+    public Caixa buscarPorData(LocalDate data) {
         for (Caixa caixa : caixas) {
-
             if (caixa.getAbertura() != null &&
                     caixa.getAbertura().toLocalDate().equals(data)) {
-
-                JOptionPane.showMessageDialog(null, "Caixa encontrado na data " + data + ":\n" + caixa);
-                encontrou = true;
+                return caixa;
             }
         }
 
-        if (!encontrou) {
-            JOptionPane.showMessageDialog(null, "Nenhum caixa encontrado na data " + data);
+        return null;
+    }
+
+    public Caixa buscarCaixaAberto() {
+        for (Caixa caixa : caixas) {
+            if (caixa.isAberto()) {
+                return caixa;
+            }
         }
+
+        return null;
     }
 
 }
