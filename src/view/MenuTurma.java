@@ -102,6 +102,11 @@ public class MenuTurma {
             return;
         }
 
+
+        if (novaTurma == null) {
+            JOptionPane.showMessageDialog(null, "Turma não pode ser nula.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         contexto.getTurmaRepository().salvarTurma(novaTurma);
     }
 

@@ -15,16 +15,6 @@ public class ClienteRepository {
     }
 
     public void salvarCliente(Cliente cliente) {
-        if (cliente == null) {
-            JOptionPane.showMessageDialog(null, "Cliente não pode ser nulo.", "Erro", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        if (buscarPorCpf(cliente.getCpf()) != null) {
-            JOptionPane.showMessageDialog(null, "Cliente com CPF " + cliente.getCpf() + " já existe.", "Erro",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
 
         clientes.add(cliente);
     }

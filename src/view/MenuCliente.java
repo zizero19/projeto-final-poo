@@ -90,6 +90,15 @@ public class MenuCliente {
 
         Cliente clienteExistente = contexto.getClienteRepository().buscarPorCpf(cpf);
 
+
+
+        if (novoCliente == null) {
+            JOptionPane.showMessageDialog(null, "Cliente não pode ser nulo.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        
+
         if (clienteExistente != null) {
             JOptionPane.showMessageDialog(null, "Cliente com CPF " + cpf + " já existe.");
             return;
