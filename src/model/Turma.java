@@ -59,4 +59,9 @@ public class Turma {
     public void setAtivo(boolean isAtivo) {
         this.isAtivo = isAtivo;
     }
+
+    @Override
+    public String toString() {
+        return nomeTurma;
+    }
 }

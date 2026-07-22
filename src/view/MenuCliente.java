@@ -134,7 +134,7 @@ public class MenuCliente {
         Cliente cliente = contexto.getClienteRepository().buscarPorCpf(cpf);
 
         if (cliente != null) {
-            JOptionPane.showMessageDialog(null, "Cliente encontrado:\n" + cliente.toString());
+            JOptionPane.showMessageDialog(null, cliente.toString());
         } else {
             JOptionPane.showMessageDialog(null, "Cliente com CPF " + cpf + "não encontrado.");
         }

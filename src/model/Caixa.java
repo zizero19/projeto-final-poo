@@ -107,11 +107,6 @@ public class Caixa {
     }
 
     public void fechar() {
-        if (!isAberto) {
-            System.out.println("O caixa já está fechado.");
-            return;
-        }
-
         this.isAberto = false;
         this.fechamento = LocalDateTime.now();
     }
@@ -141,7 +136,7 @@ public class Caixa {
 
     private boolean pedidoFoiEfetuado(Pedido pedido) {
         StatusPedido status = pedido.getStatus();
-        return status == StatusPedido.FINALIZADO || status == StatusPedido.FIADO;
+        return status == StatusPedido.FINALIZADO;
     }
 
     private boolean atingiuLimiteDeClientes(Pedido pedido) {
