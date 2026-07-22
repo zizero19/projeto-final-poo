@@ -15,16 +15,7 @@ public class TurmaRepository {
     }
 
     public void salvarTurma(Turma turma) {
-        if (turma == null) {
-            JOptionPane.showMessageDialog(null, "Turma não pode ser nula.", "Erro", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        if (buscarTurma(turma.getId()) != null) {
-            JOptionPane.showMessageDialog(null, "Turma com ID " + turma.getId() + " já existe.", "Erro",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+      
 
         turmas.add(turma);
     }
