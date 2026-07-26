@@ -3,6 +3,9 @@ package model;
 import model.enums.Turno;
 
 public class Turma {
+
+    private static int PROXIMO_ID = 1;
+
     private int id;
     private String nomeTurma;
     private int qtdALunos;
@@ -12,8 +15,8 @@ public class Turma {
     public Turma() {
     }
 
-    public Turma(int id, String nomeTurma, int qtdALunos, Turno turno, boolean isAtivo) {
-        this.id = id;
+    public Turma(String nomeTurma, int qtdALunos, Turno turno, boolean isAtivo) {
+        this.id = PROXIMO_ID;
         this.nomeTurma = nomeTurma;
         this.qtdALunos = qtdALunos;
         this.turno = turno;
@@ -22,10 +25,6 @@ public class Turma {
 
     public int getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getNomeTurma() {

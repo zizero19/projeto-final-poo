@@ -4,32 +4,36 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import model.enums.FormaPagamento;
 import model.enums.StatusPedido;
 
 public class Pedido {
+
+    private static int PROXIMO_ID = 1;
+
     private int id;
     private Cliente cliente;
-    private List<ItemPedido> itens = new ArrayList<>();
+    private List<ItemPedido> itens;
     private LocalDateTime dataHora;
     private StatusPedido status;
+    private String observacoes;
+    private double precoTotal;
+    private FormaPagamento formaPagamento;
 
     public Pedido() {
     }
 
-    public Pedido(int id, Cliente cliente) {
-        this.id = id;
+    public Pedido(int id, Cliente cliente, String observacoes) {
+        this.id = PROXIMO_ID++;
         this.cliente = cliente;
         this.dataHora = LocalDateTime.now();
         this.status = StatusPedido.EM_PREPARO;
         this.itens = new ArrayList<>();
+        this.observacoes = observacoes;
     }
 
     public int getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public Cliente getCliente() {
@@ -62,6 +66,30 @@ public class Pedido {
 
     public void setStatus(StatusPedido status) {
         this.status = status;
+    }
+
+    public String getObservacoes() {
+        return observacoes;
+    }
+
+    public void setObservacoes(String observacoes) {
+        this.observacoes = observacoes;
+    }
+
+    public double getPrecoTotal() {
+        return precoTotal;
+    }
+
+    public void setPrecoTotal(double precoTotal) {
+        this.precoTotal = precoTotal;
+    }
+
+    public FormaPagamento getFormaPagamento() {
+        return formaPagamento;
+    }
+
+    public void setFormaPagamento(FormaPagamento formaPagamento) {
+        this.formaPagamento = formaPagamento;
     }
 
     public void adicionarItem(ItemPedido item) {
@@ -126,14 +154,6 @@ public class Pedido {
             this.status = StatusPedido.AGUARDANDO_PAGAMENTO;
         } else {
             System.out.println("Não é possível cobrar um pedido que já foi finalizado ou cancelado.");
-        }
-    }
-
-    public void fiarPedido() {
-        if (this.status == StatusPedido.EM_PREPARO || this.status == StatusPedido.AGUARDANDO_PAGAMENTO) {
-            this.status = StatusPedido.FIADO;
-        } else {
-            System.out.println("Não é possível fiar um pedido que já foi finalizado ou cancelado.");
         }
     }
 

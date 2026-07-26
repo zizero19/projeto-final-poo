@@ -2,39 +2,27 @@ package model;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import model.enums.StatusPedido;
 
 public class Caixa {
+
+    private static int PROXIMO_ID = 1;
+
     private int id;
     private List<Pedido> pedidos;
     private double totalVendas;
     private boolean isAberto;
     private LocalDateTime abertura;
     private LocalDateTime fechamento;
-    private int qtdMaxClientes;
 
     public Caixa() {
+        this.id = PROXIMO_ID++;
         this.pedidos = new ArrayList<>();
-    }
-
-    public Caixa(int qtdMaxClientes) {
-        this.pedidos = new ArrayList<>();
-        this.qtdMaxClientes = qtdMaxClientes;
-    }
-
-    public Caixa(int id, List<Pedido> pedidos, double totalVendas, boolean isAberto, LocalDateTime abertura,
-            LocalDateTime fechamento, int qtdMaxClientes) {
-        this.id = id;
-        this.pedidos = pedidos;
-        this.totalVendas = totalVendas;
-        this.isAberto = isAberto;
-        this.abertura = abertura;
-        this.fechamento = fechamento;
-        this.qtdMaxClientes = qtdMaxClientes;
+        this.totalVendas = 0.0;
+        this.isAberto = true;
+        this.abertura = LocalDateTime.now();
     }
 
     public int getId() {
@@ -85,27 +73,6 @@ public class Caixa {
         this.fechamento = fechamento;
     }
 
-    public int getQtdMaxClientes() {
-        return qtdMaxClientes;
-    }
-
-    public void setQtdMaxClientes(int qtdMaxClientes) {
-        this.qtdMaxClientes = qtdMaxClientes;
-    }
-
-    public boolean abrir() {
-        if (isAberto) {
-            return false;
-        }
-
-        this.pedidos = new ArrayList<>();
-        this.totalVendas = 0.0;
-        this.isAberto = true;
-        this.abertura = LocalDateTime.now();
-        this.fechamento = null;
-        return true;
-    }
-
     public void fechar() {
         this.isAberto = false;
         this.fechamento = LocalDateTime.now();
@@ -122,11 +89,6 @@ public class Caixa {
             return;
         }
 
-        if (atingiuLimiteDeClientes(pedido)) {
-            System.out.println("A quantidade máxima de clientes deste caixa já foi atingida.");
-            return;
-        }
-
         pedidos.add(pedido);
 
         if (pedidoFoiEfetuado(pedido)) {
@@ -139,20 +101,6 @@ public class Caixa {
         return status == StatusPedido.FINALIZADO;
     }
 
-    private boolean atingiuLimiteDeClientes(Pedido pedido) {
-        if (qtdMaxClientes <= 0) {
-            return false;
-        }
-
-        Set<Cliente> clientesAtendidos = new HashSet<>();
-        for (Pedido p : pedidos) {
-            clientesAtendidos.add(p.getCliente());
-        }
-
-        boolean clienteJaAtendido = clientesAtendidos.contains(pedido.getCliente());
-        return !clienteJaAtendido && clientesAtendidos.size() >= qtdMaxClientes;
-    }
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -161,7 +109,6 @@ public class Caixa {
         sb.append("Status: ").append(isAberto ? "Aberto" : "Fechado").append("\n");
         sb.append("Abertura: ").append(abertura != null ? abertura : "-").append("\n");
         sb.append("Fechamento: ").append(fechamento != null ? fechamento : "-").append("\n");
-        sb.append("Quantidade máxima de clientes: ").append(qtdMaxClientes).append("\n");
         sb.append("Total de vendas: R$ ").append(String.format("%.2f", totalVendas)).append("\n");
         sb.append("Pedidos registrados: ").append(pedidos == null ? 0 : pedidos.size());
 
