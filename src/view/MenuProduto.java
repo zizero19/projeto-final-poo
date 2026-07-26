@@ -76,22 +76,20 @@ public class MenuProduto {
     public void cadastrarProduto() {
         Produto novoProduto = new Produto();
 
-        int id = Integer.parseInt(JOptionPane.showInputDialog("Digite o ID do produto:"));
         String nome = JOptionPane.showInputDialog("Digite o nome do produto:");
         CategoriaProduto categoriaProduto = lerCategoria();
         double preco = Double.parseDouble(JOptionPane.showInputDialog("Digite o preço do produto:"));
         int quantidadeEstoque = Integer
                 .parseInt(JOptionPane.showInputDialog("Digite a quantidade em estoque do produto:"));
 
-        novoProduto.setId(id);
         novoProduto.setNome(nome);
         novoProduto.setCategoria(categoriaProduto);
         novoProduto.setPreco(preco);
         novoProduto.setQuantidadeEstoque(quantidadeEstoque);
 
-        Produto produtoExistente = contexto.getProdutoRepository().buscarProduto(id);
+        Produto produtoExistente = contexto.getProdutoRepository().buscarProduto(nome);
         if (produtoExistente != null) {
-            JOptionPane.showMessageDialog(null, "Produto com ID " + id + " já existe.");
+            JOptionPane.showMessageDialog(null, "Produto com Nome " + nome + " já existe.");
             return;
         }
 

@@ -1,10 +1,15 @@
 package view;
 
+import java.util.List;
+
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.plaf.DimensionUIResource;
+import javax.swing.table.DefaultTableModel;
 
 import app.Contexto;
 import model.Caixa;
-import javax.swing.JOptionPane;
 
 public class MenuCaixa {
     private Contexto contexto;
@@ -14,7 +19,7 @@ public class MenuCaixa {
     }
 
     public void menu() {
-        int opcao = -1;
+        int opcao;
 
         do {
             opcao = Integer.parseInt(JOptionPane.showInputDialog(
@@ -30,16 +35,19 @@ public class MenuCaixa {
             switch (opcao) {
 
                 case 1:
+                    abrirCaixa();
                     break;
 
                 case 2:
+                    fecharCaixa();
                     break;
 
                 case 3:
+                    listarCaixasFechados();
                     break;
 
                 case 4:
-
+                    buscarCaixaPorId();
                     break;
 
                 case 0:
@@ -67,20 +75,94 @@ public class MenuCaixa {
             return;
         }
 
-        Caixa caixaAberto = new Caixa();
-        caixaAberto.abrir();
+        int confirmacao = JOptionPane.showConfirmDialog(
+                null,
+                "Deseja abrir um novo caixa?",
+                "Confirmação",
+                JOptionPane.YES_NO_OPTION);
 
+        if (confirmacao == JOptionPane.YES_OPTION) {
+            Caixa caixaAberto = new Caixa();
+            contexto.getCaixaRepository().salvarCaixa(caixaAberto);
+
+            JOptionPane.showMessageDialog(null, "Caixa aberto com sucesso.");
+        } else if (confirmacao == JOptionPane.NO_OPTION) {
+            JOptionPane.showMessageDialog(null, "Retornando para o menu.");
+            return;
+        }
     }
 
     public void fecharCaixa() {
+        if (contexto.getCaixaRepository().buscarCaixaAberto() == null) {
+            JOptionPane.showMessageDialog(null, "Não há caixa aberto no momento.");
+            return;
+        }
+
+        int confirmacao = JOptionPane.showConfirmDialog(
+                null,
+                "Deseja fechar o caixa atual?",
+                "Confirmação",
+                JOptionPane.YES_NO_OPTION);
+
+        if (confirmacao == JOptionPane.YES_OPTION) {
+            contexto.getCaixaRepository().buscarCaixaAberto().fechar();
+
+            JOptionPane.showMessageDialog(null, "Caixa fechado com sucesso.");
+        } else if (confirmacao == JOptionPane.NO_OPTION) {
+            JOptionPane.showMessageDialog(null, "Retornando para o menu.");
+            return;
+        }
 
     }
 
     public void listarCaixasFechados() {
+        List<Caixa> caixas = contexto.getCaixaRepository().listarCaixas();
+
+        if (caixas.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Nenhuma caixa foi registrado");
+            return;
+        }
+
+        String[] colunas = { "ID", "Total de Vendas", "Data Abertura", "Data Fechamento" };
+
+        DefaultTableModel model = new DefaultTableModel(colunas, 0);
+
+        for (Caixa caixa : caixas) {
+            if (!caixa.isAberto()) {
+                model.addRow(new Object[] {
+                        caixa.getId(),
+                        caixa.getTotalVendas(),
+                        caixa.getAbertura(),
+                        caixa.getFechamento()
+                });
+            }
+        }
+
+        JTable tabela = new JTable(model);
+
+        JScrollPane scroll = new JScrollPane(tabela);
+        scroll.setPreferredSize(new DimensionUIResource(600, 300));
+
+        JOptionPane.showMessageDialog(null, scroll);
 
     }
 
     public void buscarCaixaPorId() {
+        int id = Integer.parseInt(JOptionPane.showInputDialog(null, "Digite o ID do caixa:"));
+
+        Caixa caixaBuscado = contexto.getCaixaRepository().buscarPorId(id);
+
+        if (caixaBuscado != null) {
+            JOptionPane.showMessageDialog(null,
+                    "Caixa encontrado:\n"
+                            + "ID: " + caixaBuscado.getId() + "\n"
+                            + "Total de Vendas: " + caixaBuscado.getTotalVendas() + "\n"
+                            + "Data e Hora Abertura: " + caixaBuscado.getAbertura() + "\n"
+                            + "Data e Hora Fechamento: " + caixaBuscado.getFechamento() + "\n");
+        } else {
+            JOptionPane.showMessageDialog(null, "Caixa não encontrado");
+            return;
+        }
 
     }
 

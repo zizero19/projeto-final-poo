@@ -86,12 +86,10 @@ public class MenuTurma {
     public void cadastrarTurma() {
         Turma novaTurma = new Turma();
 
-        int id = Integer.parseInt(JOptionPane.showInputDialog("Digite o ID da turma:"));
         String nome = JOptionPane.showInputDialog("Digite o nome da turma:");
         int qtdAlunos = Integer.parseInt(JOptionPane.showInputDialog("Digite a quantidade de alunos da turma:"));
         Turno turno = lerTurnoTurma();
 
-        novaTurma.setId(id);
         novaTurma.setNomeTurma(nome);
         novaTurma.setQtdALunos(qtdAlunos);
         novaTurma.setTurno(turno);
@@ -101,7 +99,6 @@ public class MenuTurma {
             JOptionPane.showMessageDialog(null, "Já existe uma turma com esse ID. Por favor, escolha outro ID.");
             return;
         }
-
 
         if (novaTurma == null) {
             JOptionPane.showMessageDialog(null, "Turma não pode ser nula.", "Erro", JOptionPane.ERROR_MESSAGE);
