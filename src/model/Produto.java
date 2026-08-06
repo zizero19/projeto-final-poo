@@ -13,11 +13,11 @@ public class Produto {
     private int quantidadeEstoque;
 
     public Produto() {
-
+        this.id = PROXIMO_ID++;
     }
 
     public Produto(String nome, CategoriaProduto categoria, double preco, int quantidadeEstoque) {
-        this.id = PROXIMO_ID++;
+        this();
         this.nome = nome;
         this.categoria = categoria;
         this.preco = preco;

@@ -6,7 +6,7 @@ import java.util.List;
 import javax.swing.JOptionPane;
 
 import model.Pedido;
-import model.enums.StatusPedido;
+import model.enums.FormaPagamento;
 
 public class PedidoRepository {
     private List<Pedido> pedidos;
@@ -21,7 +21,7 @@ public class PedidoRepository {
             return;
         }
 
-        if (pedido.getStatus() == StatusPedido.FIADO && pedido.getCliente() == null) {
+        if (pedido.getFormaPagamento() == FormaPagamento.FIADO && pedido.getCliente() == null) {
             JOptionPane.showMessageDialog(null, "Pedidos fiados precisam de um cliente associado.", "Erro",
                     JOptionPane.ERROR_MESSAGE);
             return;
@@ -53,12 +53,22 @@ public class PedidoRepository {
         List<Pedido> pedidosEncontrados = new ArrayList<>();
 
         for (Pedido pedido : pedidos) {
-            if (pedido.getCliente().getCpf().equalsIgnoreCase(cpf)) {
+            if (pedido.getCliente() != null && pedido.getCliente().getCpf().equalsIgnoreCase(cpf)) {
                 pedidosEncontrados.add(pedido);
             }
         }
 
         return pedidosEncontrados;
+    }
+
+    public void removerPedido(int id) {
+        Pedido pedido = buscarPorId(id);
+
+        if (pedido != null) {
+            pedidos.remove(pedido);
+        } else {
+            JOptionPane.showMessageDialog(null, "Pedido não encontrado.", "Erro", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
 }

@@ -36,7 +36,7 @@ public class MenuPrincipal {
                     break;
 
                 case 3:
-                    // new MenuPedido().menu();
+                    new MenuPedido(contexto).menu();
                     break;
 
                 case 4:

@@ -74,18 +74,11 @@ public class MenuProduto {
     }
 
     public void cadastrarProduto() {
-        Produto novoProduto = new Produto();
-
         String nome = JOptionPane.showInputDialog("Digite o nome do produto:");
         CategoriaProduto categoriaProduto = lerCategoria();
         double preco = Double.parseDouble(JOptionPane.showInputDialog("Digite o preço do produto:"));
         int quantidadeEstoque = Integer
                 .parseInt(JOptionPane.showInputDialog("Digite a quantidade em estoque do produto:"));
-
-        novoProduto.setNome(nome);
-        novoProduto.setCategoria(categoriaProduto);
-        novoProduto.setPreco(preco);
-        novoProduto.setQuantidadeEstoque(quantidadeEstoque);
 
         Produto produtoExistente = contexto.getProdutoRepository().buscarProduto(nome);
         if (produtoExistente != null) {
@@ -93,6 +86,7 @@ public class MenuProduto {
             return;
         }
 
+        Produto novoProduto = new Produto(nome, categoriaProduto, preco, quantidadeEstoque);
         contexto.getProdutoRepository().salvarProduto(novoProduto);
         JOptionPane.showMessageDialog(null, "Produto cadastrado com sucesso!");
     }
