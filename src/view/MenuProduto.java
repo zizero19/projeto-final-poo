@@ -35,7 +35,8 @@ public class MenuProduto {
                             "2 - Listar Produtos\n" +
                             "3 - Buscar Produto por ID\n" +
                             "4 - Atualizar Produto\n" +
-                            "5 - Remover Produto\n" +
+                            "5 - Acrescentar Estoque Produto\n" +
+                            "6 - Remover Produto\n" +
                             "0 - Voltar\n" +
                             "Escolha uma opção:"));
 
@@ -58,6 +59,10 @@ public class MenuProduto {
                     break;
 
                 case 5:
+                    acrescentarEstoqueProduto();
+                    break;
+
+                case 6:
                     removerProduto();
                     break;
 
@@ -80,15 +85,13 @@ public class MenuProduto {
         int quantidadeEstoque = Integer
                 .parseInt(JOptionPane.showInputDialog("Digite a quantidade em estoque do produto:"));
 
-        Produto produtoExistente = contexto.getProdutoRepository().buscarProduto(nome);
-        if (produtoExistente != null) {
-            JOptionPane.showMessageDialog(null, "Produto com Nome " + nome + " já existe.");
-            return;
-        }
-
         Produto novoProduto = new Produto(nome, categoriaProduto, preco, quantidadeEstoque);
-        contexto.getProdutoRepository().salvarProduto(novoProduto);
-        JOptionPane.showMessageDialog(null, "Produto cadastrado com sucesso!");
+
+        if (contexto.getProdutoRepository().salvarProduto(novoProduto)) {
+            JOptionPane.showMessageDialog(null, "Produto cadastrado com sucesso!");
+        } else {
+            JOptionPane.showMessageDialog(null, "Produto ja existe ou esta com dados vazios.");
+        }
     }
 
     public void listarProdutos() {
@@ -215,14 +218,37 @@ public class MenuProduto {
     public void removerProduto() {
         int id = Integer.parseInt(JOptionPane.showInputDialog("Digite o ID do produto a ser removido:"));
 
-        Produto produto = contexto.getProdutoRepository().buscarProduto(id);
+        boolean excluido = contexto.getProdutoRepository().excluirProduto(id);
 
-        if (produto != null) {
-            contexto.getProdutoRepository().excluirProduto(id);
+        if (excluido) {
             JOptionPane.showMessageDialog(null, "Produto com ID " + id + " removido com sucesso.");
         } else {
             JOptionPane.showMessageDialog(null, "Produto com ID " + id + " não encontrado.");
         }
+    }
+
+    public void acrescentarEstoqueProduto() {
+        int id = Integer.parseInt(JOptionPane.showInputDialog("Digite o ID do produto:"));
+
+        Produto produto = contexto.getProdutoRepository().buscarProduto(id);
+
+        if (produto == null) {
+            JOptionPane.showMessageDialog(null, "Produto com ID " + id + " não encontrado.");
+            return;
+        }
+
+        int quantidade = Integer.parseInt(JOptionPane.showInputDialog("Digite a quantidade a ser acrescentada:"));
+
+        if (quantidade < 0) {
+            JOptionPane.showMessageDialog(null,
+                    "Quantidade inválida. Não é possível acrescentar uma quantidade negativa.");
+            return;
+        }
+
+        produto.setQuantidadeEstoque(produto.getQuantidadeEstoque() + quantidade);
+
+        JOptionPane.showMessageDialog(null,
+                "Estoque atualizado com sucesso! Novo estoque: " + produto.getQuantidadeEstoque());
     }
 
     public CategoriaProduto lerCategoria() {
@@ -287,7 +313,7 @@ public class MenuProduto {
                     break;
 
                 case 2:
-                    JOptionPane.showMessageDialog(null, "Saindo da busca de Turma.");
+                    JOptionPane.showMessageDialog(null, "Saindo da busca de Produto.");
                     return;
             }
         }

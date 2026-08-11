@@ -3,8 +3,6 @@ package repository;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.JOptionPane;
-
 import model.Produto;
 
 public class ProdutoRepository {
@@ -14,19 +12,17 @@ public class ProdutoRepository {
         produtos = new ArrayList<>();
     }
 
-    public void salvarProduto(Produto produto) {
+    public boolean salvarProduto(Produto produto) {
         if (produto == null) {
-            JOptionPane.showMessageDialog(null, "Produto não pode ser nulo.", "Erro", JOptionPane.ERROR_MESSAGE);
-            return;
+            return false;
         }
 
         if (buscarProduto(produto.getId()) != null) {
-            JOptionPane.showMessageDialog(null, "Produto com ID " + produto.getId() + " já existe.", "Erro",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
+            return false;
         }
 
         produtos.add(produto);
+        return true;
     }
 
     public List<Produto> listarProdutos() {
@@ -37,9 +33,6 @@ public class ProdutoRepository {
         for (Produto produto : produtos) {
             if (produto.getId() == id) {
                 return produto;
-            } else {
-                JOptionPane.showMessageDialog(null, "Produto com ID " + id + " não encontrado.", "Erro",
-                        JOptionPane.ERROR_MESSAGE);
             }
         }
         return null;
@@ -49,23 +42,20 @@ public class ProdutoRepository {
         for (Produto produto : produtos) {
             if (produto.getNome().equalsIgnoreCase(nome)) {
                 return produto;
-            } else {
-                JOptionPane.showMessageDialog(null, "Produto com Nome '" + nome + "'' não encontrado.", "Erro",
-                        JOptionPane.ERROR_MESSAGE);
             }
         }
         return null;
     }
 
-    public void excluirProduto(int id) {
+    public boolean excluirProduto(int id) {
         Produto produto = buscarProduto(id);
 
         if (produto != null) {
             produtos.remove(produto);
-        } else {
-            JOptionPane.showMessageDialog(null, "Produto não encontrado.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return true;
         }
 
+        return false;
     }
 
 }
