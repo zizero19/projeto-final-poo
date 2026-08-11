@@ -11,23 +11,24 @@ public class Turma {
     private int qtdALunos;
     private Turno turno;
     private boolean isAtivo;
+    private String diasAula;
 
     public Turma() {
+        this.id = PROXIMO_ID++;
     }
 
-    public Turma(String nomeTurma, int qtdALunos, Turno turno, boolean isAtivo) {
-        this.id = PROXIMO_ID;
+    public Turma(String nomeTurma, int qtdALunos, Turno turno, boolean isAtivo, String diasAula) {
+        this();
         this.nomeTurma = nomeTurma;
         this.qtdALunos = qtdALunos;
         this.turno = turno;
         this.isAtivo = isAtivo;
+        this.diasAula = diasAula;
     }
 
     public int getId() {
         return id;
     }
-
-    
 
     public void setId(int id) {
         this.id = id;
@@ -63,6 +64,14 @@ public class Turma {
 
     public void setAtivo(boolean isAtivo) {
         this.isAtivo = isAtivo;
+    }
+
+    public String getDiasAula() {
+        return diasAula;
+    }
+
+    public void setDiasAula(String diasAula) {
+        this.diasAula = diasAula;
     }
 
     @Override

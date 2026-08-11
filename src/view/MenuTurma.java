@@ -85,25 +85,23 @@ public class MenuTurma {
 
     public void cadastrarTurma() {
         Turma novaTurma = new Turma();
-        int  id = Integer.parseInt(JOptionPane.showInputDialog("Digite o id da turma "));
         String nome = JOptionPane.showInputDialog("Digite o nome da turma:");
         int qtdAlunos = Integer.parseInt(JOptionPane.showInputDialog("Digite a quantidade de alunos da turma:"));
         Turno turno = lerTurnoTurma();
-        novaTurma.setId(id);
+        String diasAula = lerDiasAulaTurma();
         novaTurma.setNomeTurma(nome);
         novaTurma.setQtdALunos(qtdAlunos);
         novaTurma.setTurno(turno);
+        novaTurma.setDiasAula(diasAula);
         novaTurma.setAtivo(true);
-
-        
 
         if (contexto.getTurmaRepository().buscarTurma(novaTurma.getId()) != null) {
             JOptionPane.showMessageDialog(null, "Já existe uma turma com esse ID. Por favor, escolha outro ID.");
             return;
         }
 
-       contexto.getTurmaRepository().salvarTurma(novaTurma);
-        
+        contexto.getTurmaRepository().salvarTurma(novaTurma);
+
     }
 
     public void listarTurmas() {
@@ -114,7 +112,7 @@ public class MenuTurma {
             return;
         }
 
-        String[] colunas = { "ID", "Nome", "Quantidade de Alunos", "Turno", "Esta Ativa?" };
+        String[] colunas = { "ID", "Nome", "Quantidade de Alunos", "Turno", "Dias de Aula", "Esta Ativa?" };
 
         DefaultTableModel model = new DefaultTableModel(colunas, 0);
 
@@ -124,6 +122,7 @@ public class MenuTurma {
                     t.getNomeTurma(),
                     t.getQtdALunos(),
                     t.getTurno(),
+                    t.getDiasAula(),
                     t.isAtivo() ? "Sim" : "Não" });
         }
 
@@ -147,6 +146,7 @@ public class MenuTurma {
                             + "Nome: " + turma.getNomeTurma() + "\n"
                             + "Quantidade de Alunos: " + turma.getQtdALunos() + "\n"
                             + "Turno: " + turma.getTurno() + "\n"
+                            + "Dias de Aula: " + turma.getDiasAula() + "\n"
                             + "Está Ativa? " + (turma.isAtivo() ? "Sim" : "Não"));
         } else {
             JOptionPane.showMessageDialog(null, "Turma não encontrada.");
@@ -170,6 +170,7 @@ public class MenuTurma {
         JTextField txtQtdAlunos = new JTextField(String.valueOf(turma.getQtdALunos()));
         JComboBox<Turno> comboTurno = new JComboBox<>(Turno.values());
         comboTurno.setSelectedItem(turma.getTurno());
+        JTextField txtDiasAula = new JTextField(turma.getDiasAula());
         JCheckBox chkAtivo = new JCheckBox("Ativo/Desativado", turma.isAtivo());
         chkAtivo.setSelected(turma.isAtivo());
 
@@ -183,6 +184,9 @@ public class MenuTurma {
 
         painel.add(new JLabel("Turno:"));
         painel.add(comboTurno);
+
+        painel.add(new JLabel("Dias de Aula:"));
+        painel.add(txtDiasAula);
 
         painel.add(new JLabel("Esta Ativa?"));
         painel.add(chkAtivo);
@@ -198,6 +202,7 @@ public class MenuTurma {
             turma.setNomeTurma(txtNome.getText());
             turma.setQtdALunos(Integer.parseInt(txtQtdAlunos.getText()));
             turma.setTurno((Turno) comboTurno.getSelectedItem());
+            turma.setDiasAula(txtDiasAula.getText());
             turma.setAtivo(chkAtivo.isSelected());
 
             JOptionPane.showMessageDialog(null, "Turma atualizada com sucesso!");
@@ -232,6 +237,72 @@ public class MenuTurma {
                     JOptionPane.showMessageDialog(null, "Opção inválida. Por favor, selecione novamente.");
             }
         }
+    }
+
+    public String lerDiasAulaTurma() {
+        JCheckBox chkSegunda = new JCheckBox("Segunda");
+        JCheckBox chkTerca = new JCheckBox("Terça");
+        JCheckBox chkQuarta = new JCheckBox("Quarta");
+        JCheckBox chkQuinta = new JCheckBox("Quinta");
+        JCheckBox chkSexta = new JCheckBox("Sexta");
+        JCheckBox chkSabado = new JCheckBox("Sábado");
+        JCheckBox chkDomingo = new JCheckBox("Domingo");
+
+        JPanel painel = new JPanel(new GridLayout(0, 1));
+        painel.add(new JLabel("Selecione os dias de aula:"));
+        painel.add(chkSegunda);
+        painel.add(chkTerca);
+        painel.add(chkQuarta);
+        painel.add(chkQuinta);
+        painel.add(chkSexta);
+        painel.add(chkSabado);
+        painel.add(chkDomingo);
+
+        int opcao = JOptionPane.showConfirmDialog(
+                null,
+                painel,
+                "Dias de Aula",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE);
+
+        if (opcao != JOptionPane.OK_OPTION) {
+            return "";
+        }
+
+        StringBuilder dias = new StringBuilder();
+
+        if (chkSegunda.isSelected()) {
+            dias.append("Segunda, ");
+        }
+        if (chkTerca.isSelected()) {
+            dias.append("Terça, ");
+        }
+        if (chkQuarta.isSelected()) {
+            dias.append("Quarta, ");
+        }
+        if (chkQuinta.isSelected()) {
+            dias.append("Quinta, ");
+        }
+        if (chkSexta.isSelected()) {
+            dias.append("Sexta, ");
+        }
+        if (chkSabado.isSelected()) {
+            dias.append("Sábado, ");
+        }
+        if (chkDomingo.isSelected()) {
+            dias.append("Domingo, ");
+        }
+
+        if (dias.length() == 0) {
+            JOptionPane.showMessageDialog(null, "Selecione pelo menos um dia de aula.");
+            return lerDiasAulaTurma();
+        }
+
+        String resultado = dias.toString();
+        if (resultado.endsWith(", ")) {
+            resultado = resultado.substring(0, resultado.length() - 2);
+        }
+        return resultado;
     }
 
     public void inativarTurma() {
@@ -274,6 +345,7 @@ public class MenuTurma {
                             + "Nome: " + turmaEncontrada.getNomeTurma() + "\n"
                             + "Quantidade de Alunos: " + turmaEncontrada.getQtdALunos() + "\n"
                             + "Turno: " + turmaEncontrada.getTurno() + "\n"
+                            + "Dias de Aula: " + turmaEncontrada.getDiasAula() + "\n"
                             + "Está Ativa? " + (turmaEncontrada.isAtivo() ? "Sim" : "Não"));
         } else {
             JOptionPane.showMessageDialog(null, "Turma não encontrada.");

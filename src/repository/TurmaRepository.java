@@ -3,8 +3,6 @@ package repository;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.JOptionPane;
-
 import model.Turma;
 
 public class TurmaRepository {
@@ -15,7 +13,6 @@ public class TurmaRepository {
     }
 
     public void salvarTurma(Turma turma) {
-      
 
         turmas.add(turma);
     }
@@ -43,12 +40,14 @@ public class TurmaRepository {
         return null;
     }
 
-    public void excluirTurma(int id) {
+    public boolean excluirTurma(int id) {
         Turma turma = buscarTurma(id);
+
         if (turma != null) {
             turmas.remove(turma);
+            return true;
         } else {
-            JOptionPane.showMessageDialog(null, "Turma não encontrada.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return false;
         }
     }
 

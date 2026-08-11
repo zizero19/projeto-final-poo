@@ -53,9 +53,10 @@ public class ProdutoRepository {
         if (produto != null) {
             produtos.remove(produto);
             return true;
+        } else {
+            return false;
         }
 
-        return false;
     }
 
 }
