@@ -15,7 +15,6 @@ public class ClienteRepository {
     }
 
     public void salvarCliente(Cliente cliente) {
-
         clientes.add(cliente);
     }
 

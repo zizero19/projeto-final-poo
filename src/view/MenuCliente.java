@@ -15,6 +15,7 @@ import javax.swing.table.DefaultTableModel;
 
 import app.Contexto;
 import model.Cliente;
+import model.Pedido;
 import model.Turma;
 
 public class MenuCliente {
@@ -61,6 +62,10 @@ public class MenuCliente {
                     atualizarCliente();
                     break;
 
+                case 6:
+                    historicoPedidos();
+                    break;
+
                 case 0:
                     JOptionPane.showMessageDialog(null, "Voltando ao menu principal...");
                     break;
@@ -89,15 +94,6 @@ public class MenuCliente {
         novoCliente.setTelefone(telefone);
 
         Cliente clienteExistente = contexto.getClienteRepository().buscarPorCpf(cpf);
-
-
-
-        if (novoCliente == null) {
-            JOptionPane.showMessageDialog(null, "Cliente não pode ser nulo.", "Erro", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        
 
         if (clienteExistente != null) {
             JOptionPane.showMessageDialog(null, "Cliente com CPF " + cpf + " já existe.");
@@ -213,65 +209,49 @@ public class MenuCliente {
 
     }
 
-    // public void historicoPedidos() {
-    // String cpf = JOptionPane.showInputDialog(null, "Digite o CPF do Cliente:");
+    public void historicoPedidos() {
+        String cpf = JOptionPane.showInputDialog(null, "Digite o CPF do Cliente:");
 
-    // Cliente clienteBuscado = contexto.getClienteRepository().buscarPorCpf(cpf);
+        if (cpf == null || cpf.trim().isEmpty()) {
+            return;
+        }
 
-    // if (clienteBuscado == null) {
-    // JOptionPane.showMessageDialog(null, "Cliente com o CPF " + cpf + " não
-    // encontrado.");
-    // return;
-    // }
+        Cliente clienteBuscado = contexto.getClienteRepository().buscarPorCpf(cpf);
 
-    // List<Pedido> pedidosDoCliente =
-    // contexto.getPedidoRepository().buscarPedidosPorCpfDeCliente(cpf);
+        if (clienteBuscado == null) {
+            JOptionPane.showMessageDialog(null, "Cliente com o CPF " + cpf + " não encontrado.");
+            return;
+        }
 
-    // if (pedidosDoCliente.isEmpty()) {
-    // JOptionPane.showMessageDialog(null, "Nenhum pedido associado a esse
-    // cliente.");
-    // return;
-    // }
+        List<Pedido> pedidosDoCliente = contexto.getPedidoRepository().buscarPedidosPorCpfDeCliente(cpf);
 
-    // JTextField txtNome = new JTextField(cliente.getNome());
-    // JTextField txtCpf = new JTextField(cliente.getCpf());
-    // JTextField txtEmail = new JTextField(cliente.getEmail());
-    // JComboBox<Turma> comboTurmas = new JComboBox<>();
-    // comboTurmas.setSelectedItem(cliente.getTurmaMatriculada());
-    // JTextField txtTelefone = new JTextField(cliente.getTelefone());
+        if (pedidosDoCliente.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Nenhum pedido associado a esse cliente.");
+            return;
+        }
 
-    // JPanel painel = new JPanel(new GridLayout(5, 0));
+        String[] colunas = { "ID", "Data/Hora", "Status", "Pagamento", "Total", "Observações" };
+        DefaultTableModel model = new DefaultTableModel(colunas, 0);
 
-    // painel.add(new JLabel("Nome:"));
-    // painel.add(txtNome);
+        for (Pedido pedido : pedidosDoCliente) {
+            model.addRow(new Object[] {
+                    pedido.getId(),
+                    pedido.getDataHora(),
+                    pedido.getStatus(),
+                    pedido.getFormaPagamento(),
+                    String.format("R$ %.2f", pedido.calcularTotal()),
+                    pedido.getObservacoes() == null ? "" : pedido.getObservacoes()
+            });
+        }
 
-    // painel.add(new JLabel("CPF:"));
-    // painel.add(txtCpf);
+        JTable tabela = new JTable(model);
+        JScrollPane scroll = new JScrollPane(tabela);
+        scroll.setPreferredSize(new DimensionUIResource(700, 250));
 
-    // painel.add(new JLabel("Email:"));
-    // painel.add(txtEmail);
-
-    // painel.add(new JLabel("Turma:"));
-    // painel.add(comboTurmas);
-
-    // painel.add(new JLabel("Telefone"));
-    // painel.add(txtTelefone);
-
-    // int opcao = JOptionPane.showConfirmDialog(
-    // null,
-    // painel,
-    // "Atualizar Cliente",
-    // JOptionPane.OK_CANCEL_OPTION,
-    // JOptionPane.PLAIN_MESSAGE);
-
-    // if (opcao == JOptionPane.OK_OPTION) {
-    // cliente.setNome(txtNome.getText());
-    // cliente.setCpf(txtCpf.getText());
-    // cliente.setEmail(txtEmail.getText());
-    // cliente.setTurmaMatriculada((Turma) comboTurmas.getSelectedItem());
-    // cliente.setTelefone(txtTelefone.getText());
-    // }
-    // }
+        JOptionPane.showMessageDialog(null, scroll,
+                "Histórico de Pedidos de " + clienteBuscado.getNome(),
+                JOptionPane.INFORMATION_MESSAGE);
+    }
 
     public Turma lerTurma() {
         List<Turma> turmas = contexto.getTurmaRepository().listarTurmas();
