@@ -256,6 +256,18 @@ public class MenuPedido {
 
         Pedido novoPedido = new Pedido(0, cliente, observacoes);
 
+        if (novoPedido.getFormaPagamento() == FormaPagamento.FIADO && novoPedido.getCliente() == null) {
+            JOptionPane.showMessageDialog(null, "Pedidos fiados precisam de um cliente associado.", "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (contexto.getPedidoRepository().buscarPorId(novoPedido.getId()) != null) {
+            JOptionPane.showMessageDialog(null, "Pedido com ID " + novoPedido.getId() + " já existe.", "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         for (ItemPedido item : itensPedido) {
             novoPedido.adicionarItem(item);
         }

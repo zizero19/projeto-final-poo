@@ -17,22 +17,8 @@ public class PedidoRepository {
 
     public void salvarPedido(Pedido pedido) {
         if (pedido == null) {
-            JOptionPane.showMessageDialog(null, "Pedido não pode ser nulo.", "Erro", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
-        if (pedido.getFormaPagamento() == FormaPagamento.FIADO && pedido.getCliente() == null) {
-            JOptionPane.showMessageDialog(null, "Pedidos fiados precisam de um cliente associado.", "Erro",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        if (buscarPorId(pedido.getId()) != null) {
-            JOptionPane.showMessageDialog(null, "Pedido com ID " + pedido.getId() + " já existe.", "Erro",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
         pedidos.add(pedido);
     }
 
@@ -67,7 +53,6 @@ public class PedidoRepository {
         if (pedido != null) {
             pedidos.remove(pedido);
         } else {
-            JOptionPane.showMessageDialog(null, "Pedido não encontrado.", "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 
