@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.Pedido;
+import model.enums.FormaPagamento;
+import model.enums.StatusPedido;
 
 public class PedidoRepository {
     private List<Pedido> pedidos;
@@ -51,6 +53,18 @@ public class PedidoRepository {
             pedidos.remove(pedido);
         } else {
         }
+    }
+
+    public double calcularSaldoDevedor(String cpf) {
+        double saldo = 0.0;
+        for (Pedido p : buscarPedidosPorCpfDeCliente(cpf)) {
+            if (p.getFormaPagamento() == FormaPagamento.FIADO
+                    && p.getStatus() != StatusPedido.FINALIZADO
+                    && p.getStatus() != StatusPedido.CANCELADO) {
+                saldo += p.calcularTotal();
+            }
+        }
+        return saldo;
     }
 
 }

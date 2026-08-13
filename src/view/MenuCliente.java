@@ -112,7 +112,7 @@ public class MenuCliente {
             return;
         }
 
-        String[] colunas = { "Nome", "CPF", "Email", "Turma Matriculada", "Telefone" };
+        String[] colunas = { "Nome", "CPF", "Email", "Turma Matriculada", "Telefone", "Saldo Devedor" };
 
         DefaultTableModel model = new DefaultTableModel(colunas, 0);
 
@@ -122,7 +122,8 @@ public class MenuCliente {
                     c.getCpf(),
                     c.getEmail(),
                     c.getTurmaMatriculada().getNomeTurma(),
-                    c.getTelefone()
+                    c.getTelefone(),
+                    contexto.getPedidoRepository().calcularSaldoDevedor(c.getCpf())
             });
         }
 
