@@ -3,10 +3,7 @@ package repository;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.JOptionPane;
-
 import model.Pedido;
-import model.enums.FormaPagamento;
 
 public class PedidoRepository {
     private List<Pedido> pedidos;

@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -101,7 +102,9 @@ public class MenuPedido {
             }
         };
 
-        for (Produto p : produtos) {
+        List<Produto> produtosExibidos = new ArrayList<>(produtos);
+
+        for (Produto p : produtosExibidos) {
             modelProdutos.addRow(new Object[] {
                     p.getId(),
                     p.getNome(),
@@ -116,6 +119,37 @@ public class MenuPedido {
 
         JScrollPane scrollProdutos = new JScrollPane(tabelaProdutos);
         scrollProdutos.setPreferredSize(new DimensionUIResource(560, 150));
+
+        JTextField txtBusca = new JTextField();
+        JPanel painelBusca = new JPanel(new BorderLayout(5, 5));
+        painelBusca.add(new JLabel("Buscar produto (pressione Enter):"), BorderLayout.WEST);
+        painelBusca.add(txtBusca, BorderLayout.CENTER);
+
+        txtBusca.addActionListener(e -> {
+            String termo = txtBusca.getText() == null ? "" : txtBusca.getText().trim().toLowerCase();
+
+            produtosExibidos.clear();
+            for (Produto p : produtos) {
+                if (termo.isEmpty() || (p.getNome() != null && p.getNome().toLowerCase().contains(termo))) {
+                    produtosExibidos.add(p);
+                }
+            }
+
+            modelProdutos.setRowCount(0);
+            for (Produto p : produtosExibidos) {
+                modelProdutos.addRow(new Object[] {
+                        p.getId(),
+                        p.getNome(),
+                        p.getCategoria(),
+                        p.getPreco(),
+                        p.getQuantidadeEstoque()
+                });
+            }
+
+            if (produtosExibidos.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Nenhum produto encontrado para \"" + txtBusca.getText() + "\".");
+            }
+        });
 
         JTextField txtQuantidade = new JTextField(5);
         JButton btnAdicionar = new JButton("Adicionar Item");
@@ -136,10 +170,32 @@ public class MenuPedido {
         };
 
         JTable tabelaItens = new JTable(modelItens);
+        tabelaItens.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollItens = new JScrollPane(tabelaItens);
         scrollItens.setPreferredSize(new DimensionUIResource(560, 120));
 
+        JButton btnRemoverItem = new JButton("Remover Item Adicionado");
+        JPanel painelRemover = new JPanel();
+        painelRemover.add(btnRemoverItem);
+
         JLabel lblTotal = new JLabel("Total: R$ 0,00");
+
+        Runnable atualizarTotal = () -> {
+            double total = 0.0;
+            for (ItemPedido i : itensPedido) {
+                total += i.getSubtotal();
+            }
+            lblTotal.setText(String.format("Total: R$ %.2f", total));
+        };
+
+        Consumer<Produto> atualizarEstoqueNaTabelaProdutos = produto -> {
+            for (int i = 0; i < produtosExibidos.size(); i++) {
+                if (produtosExibidos.get(i).getId() == produto.getId()) {
+                    modelProdutos.setValueAt(produto.getQuantidadeEstoque(), i, 4);
+                    break;
+                }
+            }
+        };
 
         btnAdicionar.addActionListener(e -> {
             int linhaSelecionada = tabelaProdutos.getSelectedRow();
@@ -150,7 +206,7 @@ public class MenuPedido {
                 return;
             }
 
-            Produto produtoSelecionado = produtos.get(linhaSelecionada);
+            Produto produtoSelecionado = produtosExibidos.get(linhaSelecionada);
 
             int quantidade;
             try {
@@ -184,13 +240,38 @@ public class MenuPedido {
 
             modelProdutos.setValueAt(produtoSelecionado.getQuantidadeEstoque(), linhaSelecionada, 4);
 
-            double total = 0.0;
-            for (ItemPedido i : itensPedido) {
-                total += i.getSubtotal();
-            }
-            lblTotal.setText(String.format("Total: R$ %.2f", total));
+            atualizarTotal.run();
 
             txtQuantidade.setText("");
+        });
+
+        btnRemoverItem.addActionListener(e -> {
+            int linhaSelecionada = tabelaItens.getSelectedRow();
+
+            if (linhaSelecionada == -1) {
+                JOptionPane.showMessageDialog(null, "Selecione um item na tabela de itens do pedido.", "Erro",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            int confirmacao = JOptionPane.showConfirmDialog(
+                    null,
+                    "O cliente desistiu deste item? O estoque será devolvido.",
+                    "Remover Item",
+                    JOptionPane.YES_NO_OPTION);
+
+            if (confirmacao != JOptionPane.YES_OPTION) {
+                return;
+            }
+
+            ItemPedido itemRemovido = itensPedido.remove(linhaSelecionada);
+
+            itemRemovido.getProduto().aumentarEstoque(itemRemovido.getQuantidade());
+            atualizarEstoqueNaTabelaProdutos.accept(itemRemovido.getProduto());
+
+            modelItens.removeRow(linhaSelecionada);
+
+            atualizarTotal.run();
         });
 
         JComboBox<FormaPagamento> comboPagamento = new JComboBox<>(FormaPagamento.values());
@@ -202,12 +283,20 @@ public class MenuPedido {
         painelFinal.add(new JLabel("Observações:"));
         painelFinal.add(txtObservacoes);
 
+        JPanel painelTopoProdutos = new JPanel(new BorderLayout(5, 5));
+        painelTopoProdutos.add(new JLabel("Produtos cadastrados:"), BorderLayout.NORTH);
+        painelTopoProdutos.add(painelBusca, BorderLayout.SOUTH);
+
         JPanel painelPrincipal = new JPanel(new BorderLayout(5, 5));
-        painelPrincipal.add(new JLabel("Produtos cadastrados:"), BorderLayout.NORTH);
+        painelPrincipal.add(painelTopoProdutos, BorderLayout.NORTH);
         painelPrincipal.add(scrollProdutos, BorderLayout.CENTER);
 
+        JPanel painelItensCabecalho = new JPanel(new BorderLayout(5, 5));
+        painelItensCabecalho.add(painelAdicionar, BorderLayout.NORTH);
+        painelItensCabecalho.add(painelRemover, BorderLayout.SOUTH);
+
         JPanel painelInferior = new JPanel(new BorderLayout(5, 5));
-        painelInferior.add(painelAdicionar, BorderLayout.NORTH);
+        painelInferior.add(painelItensCabecalho, BorderLayout.NORTH);
         painelInferior.add(scrollItens, BorderLayout.CENTER);
         painelInferior.add(lblTotal, BorderLayout.SOUTH);
 
@@ -255,18 +344,6 @@ public class MenuPedido {
         }
 
         Pedido novoPedido = new Pedido(0, cliente, observacoes);
-
-        if (novoPedido.getFormaPagamento() == FormaPagamento.FIADO && novoPedido.getCliente() == null) {
-            JOptionPane.showMessageDialog(null, "Pedidos fiados precisam de um cliente associado.", "Erro",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        if (contexto.getPedidoRepository().buscarPorId(novoPedido.getId()) != null) {
-            JOptionPane.showMessageDialog(null, "Pedido com ID " + novoPedido.getId() + " já existe.", "Erro",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
 
         for (ItemPedido item : itensPedido) {
             novoPedido.adicionarItem(item);
