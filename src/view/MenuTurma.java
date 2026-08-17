@@ -1,9 +1,14 @@
 package view;
 
 import java.awt.GridLayout;
+import java.awt.Dimension;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -12,7 +17,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.plaf.DimensionUIResource;
 import javax.swing.table.DefaultTableModel;
 
 import app.Contexto;
@@ -39,6 +43,7 @@ public class MenuTurma {
                             + "4 - Atualizar Turma\n"
                             + "5 - Inativar Turma\n"
                             + "6 - Excluir Turma\n"
+                            + "7 - Resumo das Turmas de Hoje\n"
                             + "0 - Voltar\n\n"
                             + "Escolha uma opção:"));
 
@@ -66,6 +71,10 @@ public class MenuTurma {
 
                 case 6:
                     excluirTurma();
+                    break;
+
+                case 7:
+                    resumoTurmasHoje();
                     break;
 
                 case 0:
@@ -106,6 +115,112 @@ public class MenuTurma {
 
     }
 
+    public void resumoTurmasHoje() {
+        List<Turma> turmas = contexto.getTurmaRepository().listarTurmas();
+        DiaSemana diaAtual = obterDiaSemanaAtual();
+
+        if (diaAtual == null) {
+            JOptionPane.showMessageDialog(
+                    null,
+                    "A faculdade não possui atividades aos sábados e domingos.");
+            return;
+        }
+
+        List<Turma> turmasDaNoite = new ArrayList<>();
+
+        for (Turma turma : turmas) {
+            if (!turma.isAtivo()) {
+                continue;
+            }
+
+            if (!turma.getDiasAula().contains(diaAtual)) {
+                continue;
+            }
+
+            if (turma.getTurno() != Turno.NOTURNO && turma.getTurno() != Turno.INTEGRAL) {
+                continue;
+            }
+
+            turmasDaNoite.add(turma);
+        }
+
+        if (turmasDaNoite.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    null,
+                    "Nenhuma turma ativa opera no período noturno hoje (" + diaAtual + ").");
+            return;
+        }
+
+        String[] colunas = { "Turma", "Turno", "Quantidade de Alunos" };
+        DefaultTableModel model = new DefaultTableModel(colunas, 0);
+
+        int totalAlunos = 0;
+
+        for (Turma turma : turmasDaNoite) {
+            model.addRow(new Object[] {
+                    turma.getNomeTurma(),
+                    turma.getTurno(),
+                    turma.getQtdALunos()
+            });
+
+            totalAlunos += turma.getQtdALunos();
+        }
+
+        JTable tabela = new JTable(model);
+        tabela.setEnabled(false);
+        tabela.setFillsViewportHeight(true);
+
+        JScrollPane scroll = new JScrollPane(tabela);
+        scroll.setPreferredSize(new Dimension(600, 250));
+        scroll.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+
+        JLabel lblDia = new JLabel("Dia: " + diaAtual);
+        JLabel lblTurmas = new JLabel(
+                "Turmas em operação à noite: " + turmasDaNoite.size());
+        JLabel lblTotal = new JLabel(
+                "Total estimado de alunos: " + totalAlunos);
+
+        lblDia.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+        lblTurmas.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+        lblTotal.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+
+        JPanel painel = new JPanel();
+        painel.setLayout(new BoxLayout(painel, BoxLayout.Y_AXIS));
+
+        painel.add(lblDia);
+        painel.add(Box.createVerticalStrut(10));
+        painel.add(lblTurmas);
+        painel.add(Box.createVerticalStrut(10));
+        painel.add(scroll);
+        painel.add(Box.createVerticalStrut(10));
+        painel.add(lblTotal);
+
+        JOptionPane.showMessageDialog(
+                null,
+                painel,
+                "Resumo das Turmas de Hoje",
+                JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private DiaSemana obterDiaSemanaAtual() {
+        DayOfWeek dia = LocalDate.now().getDayOfWeek();
+
+        switch (dia) {
+            case MONDAY:
+                return DiaSemana.SEGUNDA;
+            case TUESDAY:
+                return DiaSemana.TERCA;
+            case WEDNESDAY:
+                return DiaSemana.QUARTA;
+            case THURSDAY:
+                return DiaSemana.QUINTA;
+            case FRIDAY:
+                return DiaSemana.SEXTA;
+            default:
+                return null;
+        }
+    }
+
     public void listarTurmas() {
         List<Turma> turmas = contexto.getTurmaRepository().listarTurmas();
 
@@ -131,7 +246,7 @@ public class MenuTurma {
         JTable tabela = new JTable(model);
 
         JScrollPane scroll = new JScrollPane(tabela);
-        scroll.setPreferredSize(new DimensionUIResource(600, 300));
+        scroll.setPreferredSize(new Dimension(600, 300));
 
         JOptionPane.showMessageDialog(null, scroll);
     }
