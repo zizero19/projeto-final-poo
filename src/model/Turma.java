@@ -1,5 +1,9 @@
 package model;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import model.enums.DiaSemana;
 import model.enums.Turno;
 
 public class Turma {
@@ -11,19 +15,20 @@ public class Turma {
     private int qtdALunos;
     private Turno turno;
     private boolean isAtivo;
-    private String diasAula;
+    private List<DiaSemana> diasAula;
 
     public Turma() {
         this.id = PROXIMO_ID++;
+        this.diasAula = new ArrayList<>();
     }
 
-    public Turma(String nomeTurma, int qtdALunos, Turno turno, boolean isAtivo, String diasAula) {
+    public Turma(String nomeTurma, int qtdALunos, Turno turno, boolean isAtivo, List<DiaSemana> diasAula) {
         this();
         this.nomeTurma = nomeTurma;
         this.qtdALunos = qtdALunos;
         this.turno = turno;
         this.isAtivo = isAtivo;
-        this.diasAula = diasAula;
+        this.diasAula = diasAula != null ? new ArrayList<>(diasAula) : new ArrayList<>();
     }
 
     public int getId() {
@@ -66,12 +71,12 @@ public class Turma {
         this.isAtivo = isAtivo;
     }
 
-    public String getDiasAula() {
+    public List<DiaSemana> getDiasAula() {
         return diasAula;
     }
 
-    public void setDiasAula(String diasAula) {
-        this.diasAula = diasAula;
+    public void setDiasAula(List<DiaSemana> diasAula) {
+        this.diasAula = diasAula != null ? new ArrayList<>(diasAula) : new ArrayList<>();
     }
 
     @Override

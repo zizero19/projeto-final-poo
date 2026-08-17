@@ -10,6 +10,7 @@ import model.Pedido;
 import model.Produto;
 import model.Turma;
 import model.enums.CategoriaProduto;
+import model.enums.DiaSemana;
 import model.enums.FormaPagamento;
 import model.enums.Turno;
 
@@ -43,17 +44,33 @@ public class DataMock {
     private static List<Turma> popularTurmas(Contexto contexto) {
         List<Turma> turmas = new ArrayList<>();
 
-        turmas.add(new Turma("1º Ano A - Ensino Médio", 32, Turno.MATUTINO, true, "Segunda a Sexta"));
-        turmas.add(new Turma("2º Ano B - Ensino Médio", 28, Turno.VESPERTINO, true, "Segunda a Sexta"));
-        turmas.add(new Turma("3º Ano A - Ensino Médio", 25, Turno.MATUTINO, true, "Segunda a Sexta"));
-        turmas.add(new Turma("9º Ano C - Ensino Fundamental", 30, Turno.VESPERTINO, true, "Segunda a Sexta"));
-        turmas.add(new Turma("Técnico em Informática", 20, Turno.NOTURNO, true, "Segunda, Quarta e Sexta"));
+        turmas.add(new Turma("1º Ano A - Ensino Médio", 32, Turno.MATUTINO, true, diasUteis()));
+        turmas.add(new Turma("2º Ano B - Ensino Médio", 28, Turno.VESPERTINO, true, diasUteis()));
+        turmas.add(new Turma("3º Ano A - Ensino Médio", 25, Turno.MATUTINO, true, diasUteis()));
+        turmas.add(new Turma("9º Ano C - Ensino Fundamental", 30, Turno.VESPERTINO, true, diasUteis()));
+        turmas.add(new Turma("Técnico em Informática", 20, Turno.NOTURNO, true, diasSegundaQuartaSexta()));
 
         for (Turma turma : turmas) {
             contexto.getTurmaRepository().salvarTurma(turma);
         }
 
         return turmas;
+    }
+
+    private static List<DiaSemana> diasUteis() {
+        return new ArrayList<>(List.of(
+                DiaSemana.SEGUNDA,
+                DiaSemana.TERCA,
+                DiaSemana.QUARTA,
+                DiaSemana.QUINTA,
+                DiaSemana.SEXTA));
+    }
+
+    private static List<DiaSemana> diasSegundaQuartaSexta() {
+        return new ArrayList<>(List.of(
+                DiaSemana.SEGUNDA,
+                DiaSemana.QUARTA,
+                DiaSemana.SEXTA));
     }
 
     // ===================== CLIENTES =====================

@@ -376,7 +376,12 @@ public class MenuPedido {
 
         String[] colunas = { "ID", "Cliente", "Data/Hora", "Status", "Forma de Pagamento", "Total" };
 
-        DefaultTableModel model = new DefaultTableModel(colunas, 0);
+        DefaultTableModel model = new DefaultTableModel(colunas, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
 
         for (Pedido p : pedidos) {
             model.addRow(new Object[] {
@@ -390,11 +395,115 @@ public class MenuPedido {
         }
 
         JTable tabela = new JTable(model);
+        tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         JScrollPane scroll = new JScrollPane(tabela);
-        scroll.setPreferredSize(new DimensionUIResource(600, 300));
+        scroll.setPreferredSize(new DimensionUIResource(700, 300));
 
-        JOptionPane.showMessageDialog(null, scroll);
+        tabela.getSelectionModel().addListSelectionListener(e -> {
+            if (e.getValueIsAdjusting()) {
+                return;
+            }
+
+            int linhaSelecionada = tabela.getSelectedRow();
+
+            if (linhaSelecionada != -1) {
+                Pedido pedidoSelecionado = pedidos.get(linhaSelecionada);
+                mostrarDetalhesPedido(pedidoSelecionado);
+                tabela.clearSelection();
+            }
+        });
+
+        JOptionPane.showMessageDialog(
+                null,
+                scroll,
+                "Pedidos Cadastrados - Selecione um pedido para ver os detalhes",
+                JOptionPane.PLAIN_MESSAGE);
+    }
+
+    public void mostrarDetalhesPedido(Pedido pedido) {
+        if (pedido == null) {
+            JOptionPane.showMessageDialog(
+                    null,
+                    "Pedido não encontrado.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String[] colunas = { "Produto", "Quantidade", "Preço Unitário", "Subtotal" };
+
+        DefaultTableModel modelItens = new DefaultTableModel(colunas, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        if (pedido.getItens() != null) {
+            for (ItemPedido item : pedido.getItens()) {
+                if (item == null || item.getProduto() == null) {
+                    continue;
+                }
+
+                modelItens.addRow(new Object[] {
+                        item.getProduto().getNome(),
+                        item.getQuantidade(),
+                        String.format("R$ %.2f", item.getProduto().getPreco()),
+                        String.format("R$ %.2f", item.getSubtotal())
+                });
+            }
+        }
+
+        JTable tabelaItens = new JTable(modelItens);
+        tabelaItens.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        JScrollPane scrollItens = new JScrollPane(tabelaItens);
+        scrollItens.setPreferredSize(new DimensionUIResource(600, 180));
+
+        JPanel painelInformacoes = new JPanel(new GridLayout(0, 2, 5, 5));
+
+        painelInformacoes.add(new JLabel("ID do Pedido:"));
+        painelInformacoes.add(new JLabel(String.valueOf(pedido.getId())));
+
+        painelInformacoes.add(new JLabel("Data/Hora:"));
+        painelInformacoes.add(new JLabel(
+                pedido.getDataHora() != null ? pedido.getDataHora().toString() : "-"));
+
+        painelInformacoes.add(new JLabel("Status:"));
+        painelInformacoes.add(new JLabel(
+                pedido.getStatus() != null ? pedido.getStatus().toString() : "-"));
+
+        painelInformacoes.add(new JLabel("Forma de Pagamento:"));
+        painelInformacoes.add(new JLabel(
+                pedido.getFormaPagamento() != null ? pedido.getFormaPagamento().toString() : "-"));
+
+        if (pedido.getCliente() != null) {
+            painelInformacoes.add(new JLabel("Cliente:"));
+            painelInformacoes.add(new JLabel(pedido.getCliente().getNome()));
+
+            painelInformacoes.add(new JLabel("CPF:"));
+            painelInformacoes.add(new JLabel(pedido.getCliente().getCpf()));
+        }
+
+        if (pedido.getObservacoes() != null && !pedido.getObservacoes().trim().isEmpty()) {
+            painelInformacoes.add(new JLabel("Observações:"));
+            painelInformacoes.add(new JLabel(pedido.getObservacoes()));
+        }
+
+        JLabel lblTotal = new JLabel(
+                String.format("Total do Pedido: R$ %.2f", pedido.calcularTotal()));
+
+        JPanel painelPrincipal = new JPanel(new BorderLayout(5, 5));
+        painelPrincipal.add(painelInformacoes, BorderLayout.NORTH);
+        painelPrincipal.add(scrollItens, BorderLayout.CENTER);
+        painelPrincipal.add(lblTotal, BorderLayout.SOUTH);
+
+        JOptionPane.showMessageDialog(
+                null,
+                painelPrincipal,
+                "Detalhes do Pedido #" + pedido.getId(),
+                JOptionPane.PLAIN_MESSAGE);
     }
 
     public void buscarPedidoPorId() {

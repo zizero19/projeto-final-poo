@@ -7,6 +7,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.plaf.DimensionUIResource;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.ListSelectionModel;
+
+import model.Pedido;
 
 import app.Contexto;
 import model.Caixa;
@@ -48,6 +51,10 @@ public class MenuCaixa {
 
                 case 4:
                     buscarCaixaPorId();
+                    break;
+
+                case 5:
+                    listarPedidosCaixaAtual();
                     break;
 
                 case 0:
@@ -167,7 +174,75 @@ public class MenuCaixa {
     }
 
     public void listarPedidosCaixaAtual() {
+        Caixa caixaAtual = contexto.getCaixaRepository().buscarCaixaAberto();
 
+        if (caixaAtual == null) {
+            JOptionPane.showMessageDialog(
+                    null,
+                    "Não há caixa aberto no momento.",
+                    "Informação",
+                    JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        List<Pedido> pedidos = caixaAtual.getPedidos();
+
+        if (pedidos == null || pedidos.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    null,
+                    "Nenhum pedido foi registrado no caixa atual.",
+                    "Informação",
+                    JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        String[] colunas = { "ID", "Cliente", "Data/Hora", "Status", "Forma de Pagamento", "Total" };
+
+        DefaultTableModel model = new DefaultTableModel(colunas, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        for (Pedido p : pedidos) {
+            model.addRow(new Object[] {
+                    p.getId(),
+                    p.getCliente() != null ? p.getCliente().getNome() : "-",
+                    p.getDataHora(),
+                    p.getStatus(),
+                    p.getFormaPagamento(),
+                    String.format("R$ %.2f", p.calcularTotal())
+            });
+        }
+
+        JTable tabela = new JTable(model);
+        tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        JScrollPane scroll = new JScrollPane(tabela);
+        scroll.setPreferredSize(new DimensionUIResource(700, 300));
+
+        tabela.getSelectionModel().addListSelectionListener(e -> {
+            if (e.getValueIsAdjusting()) {
+                return;
+            }
+
+            int linhaSelecionada = tabela.getSelectedRow();
+
+            if (linhaSelecionada != -1) {
+                Pedido pedidoSelecionado = pedidos.get(linhaSelecionada);
+
+                new MenuPedido(contexto).mostrarDetalhesPedido(pedidoSelecionado);
+
+                tabela.clearSelection();
+            }
+        });
+
+        JOptionPane.showMessageDialog(
+                null,
+                scroll,
+                "Pedidos do Caixa Atual - Selecione um pedido para ver os detalhes",
+                JOptionPane.PLAIN_MESSAGE);
     }
 
 }
