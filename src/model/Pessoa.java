@@ -39,12 +39,4 @@ public class Pessoa {
         this.email = email;
     }
 
-    @Override
-    public String toString() {
-        return "Nome: " + nome +
-                "\nCPF: " + cpf +
-                "\nEmail: " + email;
-    }
-
-    // TODO: Implementar métodos de validação de CPF e email, se necessário.
 }

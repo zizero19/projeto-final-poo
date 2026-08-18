@@ -291,7 +291,8 @@ public class MenuTurma {
         JCheckBox chkAtivo = new JCheckBox("Ativo/Desativado", turma.isAtivo());
         chkAtivo.setSelected(turma.isAtivo());
 
-        JPanel painel = new JPanel(new GridLayout(0, 1));
+        JPanel painel = new JPanel();
+        painel.setLayout(new BoxLayout(painel, BoxLayout.Y_AXIS));
 
         painel.add(new JLabel("Nome:"));
         painel.add(txtNome);

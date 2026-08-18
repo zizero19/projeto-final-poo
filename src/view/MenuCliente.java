@@ -140,14 +140,47 @@ public class MenuCliente {
 
     private void buscarCliente() {
         String cpf = JOptionPane.showInputDialog("CPF:");
+
         Cliente cliente = contexto.getClienteRepository().buscarPorCpf(cpf);
 
         if (cliente != null) {
-            JOptionPane.showMessageDialog(null, cliente.toString());
-        } else {
-            JOptionPane.showMessageDialog(null, "Cliente com CPF " + cpf + "não encontrado.");
-        }
 
+            String informacoes = cliente.toString();
+
+            List<Pedido> pedidos = contexto.getPedidoRepository()
+                    .buscarPedidosPorCpfDeCliente(cpf);
+
+            StringBuilder historico = new StringBuilder();
+
+            historico.append("\nHistórico de Pedidos:\n");
+
+            if (pedidos.isEmpty()) {
+                historico.append("Nenhum pedido associado.\n");
+            } else {
+                for (Pedido pedido : pedidos) {
+                    historico.append("Pedido #")
+                            .append(pedido.getId())
+                            .append(" - ")
+                            .append(pedido.getFormaPagamento())
+                            .append(" - R$ ")
+                            .append(String.format("%.2f", pedido.calcularTotal()))
+                            .append(" - ")
+                            .append(pedido.getStatus())
+                            .append("\n");
+                }
+            }
+
+            JOptionPane.showMessageDialog(
+                    null,
+                    informacoes + historico,
+                    "Cliente",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+        } else {
+            JOptionPane.showMessageDialog(
+                    null,
+                    "Cliente com CPF " + cpf + " não encontrado.");
+        }
     }
 
     private void removerCliente() {
@@ -176,6 +209,13 @@ public class MenuCliente {
         JTextField txtCpf = new JTextField(cliente.getCpf());
         JTextField txtEmail = new JTextField(cliente.getEmail());
         JComboBox<Turma> comboTurmas = new JComboBox<>();
+
+        List<Turma> turmas = contexto.getTurmaRepository().listarTurmas();
+
+        for (Turma turma : turmas) {
+            comboTurmas.addItem(turma);
+        }
+
         comboTurmas.setSelectedItem(cliente.getTurmaMatriculada());
         JTextField txtTelefone = new JTextField(cliente.getTelefone());
 
