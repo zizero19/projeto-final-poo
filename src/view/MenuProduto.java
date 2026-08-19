@@ -33,11 +33,11 @@ public class MenuProduto {
                     "========== MENU PRODUTO ==========\n" +
                             "1 - Cadastrar Produto\n" +
                             "2 - Listar Produtos\n" +
-                            "3 - Buscar Produto por ID\n" +
+                            "3 - Buscar Produto\n" +
                             "4 - Atualizar Produto\n" +
                             "5 - Acrescentar Estoque Produto\n" +
                             "6 - Remover Produto\n" +
-                            "0 - Voltar\n" +
+                            "0 - Voltar\n\n" +
                             "Escolha uma opção:"));
 
             switch (opcao) {
@@ -118,7 +118,7 @@ public class MenuProduto {
                     p.getNome(),
                     p.getCategoria(),
                     p.getPreco(),
-                    p.getQuantidadeEstoque()
+                    p.getQtdEstoque()
             });
         }
 
@@ -142,7 +142,7 @@ public class MenuProduto {
                             "Nome: " + produtoBuscado.getNome() + "\n" +
                             "Categoria: " + produtoBuscado.getCategoria() + "\n" +
                             "Preço: " + produtoBuscado.getPreco() + "\n" +
-                            "Estoque: " + produtoBuscado.getQuantidadeEstoque());
+                            "Estoque: " + produtoBuscado.getQtdEstoque());
         } else {
             JOptionPane.showMessageDialog(null, "Produto com ID " + id + " não encontrado.");
         }
@@ -160,7 +160,7 @@ public class MenuProduto {
                             "Nome: " + produtoBuscado.getNome() + "\n" +
                             "Categoria: " + produtoBuscado.getCategoria() + "\n" +
                             "Preço: " + produtoBuscado.getPreco() + "\n" +
-                            "Estoque: " + produtoBuscado.getQuantidadeEstoque());
+                            "Estoque: " + produtoBuscado.getQtdEstoque());
         } else {
             JOptionPane.showMessageDialog(null, "Produto com Nome '" + nome + "'' não encontrado.");
         }
@@ -182,7 +182,7 @@ public class MenuProduto {
         JComboBox<CategoriaProduto> cbCategoria = new JComboBox<>(CategoriaProduto.values());
         cbCategoria.setSelectedItem(produto.getCategoria());
         JTextField txtPreco = new JTextField(String.valueOf(produto.getPreco()));
-        JTextField txtEstoque = new JTextField(String.valueOf(produto.getQuantidadeEstoque()));
+        JTextField txtEstoque = new JTextField(String.valueOf(produto.getQtdEstoque()));
 
         JPanel painel = new JPanel(new GridLayout(4, 2, 5, 5));
 
@@ -209,7 +209,7 @@ public class MenuProduto {
             produto.setNome(txtNome.getText());
             produto.setCategoria((CategoriaProduto) cbCategoria.getSelectedItem());
             produto.setPreco(Double.parseDouble(txtPreco.getText()));
-            produto.setQuantidadeEstoque(Integer.parseInt(txtEstoque.getText()));
+            produto.setQtdEstoque(Integer.parseInt(txtEstoque.getText()));
 
             JOptionPane.showMessageDialog(null, "Produto atualizado com sucesso!");
         }
@@ -245,10 +245,10 @@ public class MenuProduto {
             return;
         }
 
-        produto.setQuantidadeEstoque(produto.getQuantidadeEstoque() + quantidade);
+        produto.setQtdEstoque(produto.getQtdEstoque() + quantidade);
 
         JOptionPane.showMessageDialog(null,
-                "Estoque atualizado com sucesso! Novo estoque: " + produto.getQuantidadeEstoque());
+                "Estoque atualizado com sucesso! Novo estoque: " + produto.getQtdEstoque());
     }
 
     public CategoriaProduto lerCategoria() {

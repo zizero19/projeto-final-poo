@@ -74,15 +74,4 @@ public class Cliente extends Pessoa {
 
     }
 
-    public String visualizarHistoricoPedidos() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Histórico de Pedidos:\n");
-        for (Pedido pedido : historicoPedidos) {
-            if (pedido.getCliente().getCpf().equals(this.getCpf())) {
-                sb.append(pedido.toString()).append("\n");
-            }
-        }
-        return sb.toString();
-    }
-
 }

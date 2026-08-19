@@ -39,12 +39,6 @@ public class ItemPedido {
         this.subtotal = subtotal;
     }
 
-    public String toString() {
-        return "produto" + produto +
-                "\nquantidade: " + quantidade +
-                "\nsubtotal: " + subtotal;
-    }
-
     public double calcularSubtotal() {
         return produto.getPreco() * quantidade;
     }

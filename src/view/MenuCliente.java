@@ -40,7 +40,7 @@ public class MenuCliente {
                             + "4 - Remover Cliente por CPF\n"
                             + "5 - Atualizar Cliente por CPF\n"
                             + "6 - Historico de Pedidos de Clientes\n"
-                            + "0 - Voltar\n"
+                            + "0 - Voltar\n\n"
                             + "Escolha uma opção:"));
 
             switch (opcao) {

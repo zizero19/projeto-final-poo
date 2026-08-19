@@ -10,7 +10,7 @@ public class Produto {
     private String nome;
     private CategoriaProduto categoria;
     private double preco;
-    private int quantidadeEstoque;
+    private int qtdEstoque;
 
     public Produto() {
         this.id = PROXIMO_ID++;
@@ -21,7 +21,7 @@ public class Produto {
         this.nome = nome;
         this.categoria = categoria;
         this.preco = preco;
-        this.quantidadeEstoque = quantidadeEstoque;
+        this.qtdEstoque = quantidadeEstoque;
     }
 
     public int getId() {
@@ -56,21 +56,21 @@ public class Produto {
         }
     }
 
-    public int getQuantidadeEstoque() {
-        return quantidadeEstoque;
+    public int getQtdEstoque() {
+        return qtdEstoque;
     }
 
-    public void setQuantidadeEstoque(int quantidadeEstoque) {
+    public void setQtdEstoque(int quantidadeEstoque) {
         if (quantidadeEstoque >= 0) {
-            this.quantidadeEstoque = quantidadeEstoque;
+            this.qtdEstoque = quantidadeEstoque;
         } else {
             System.out.println("Quantidade de estoque inválida.");
         }
     }
 
     public void diminuirEstoque(int quantidade) {
-        if (quantidade > 0 && quantidade <= quantidadeEstoque) {
-            quantidadeEstoque -= quantidade;
+        if (quantidade > 0 && quantidade <= qtdEstoque) {
+            qtdEstoque -= quantidade;
         } else {
             System.out.println("Quantidade insuficiente em estoque.");
         }
@@ -78,22 +78,14 @@ public class Produto {
 
     public void aumentarEstoque(int quantidade) {
         if (quantidade > 0) {
-            quantidadeEstoque += quantidade;
+            qtdEstoque += quantidade;
         } else {
             System.out.println("Quantidade inválida.");
         }
     }
 
     public boolean possuiEstoque() {
-        return quantidadeEstoque > 0;
-    }
-
-    public void atualizarPreco(double novoPreco) {
-        if (novoPreco > 0) {
-            preco = novoPreco;
-        } else {
-            System.out.println("Novo preço inválido.");
-        }
+        return qtdEstoque > 0;
     }
 
     @Override
@@ -102,7 +94,7 @@ public class Produto {
                 "\nNome: " + nome +
                 "\nCategoria: " + categoria +
                 "\nPreço: R$ " + String.format("%.2f", preco) +
-                "\nEstoque: " + quantidadeEstoque;
+                "\nEstoque: " + qtdEstoque;
     }
 
 }

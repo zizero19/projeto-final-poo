@@ -27,10 +27,6 @@ public class CaixaRepository {
     }
 
     public List<Caixa> listarCaixas() {
-        if (caixas.isEmpty()) {
-            return null;
-        }
-
         return caixas;
     }
 

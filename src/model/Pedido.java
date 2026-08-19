@@ -101,20 +101,6 @@ public class Pedido {
         itens.add(item);
     }
 
-    public void removerItem(ItemPedido item) {
-        if (item == null) {
-            System.out.println("O item não pode ser nulo.");
-            return;
-        }
-
-        if (!itens.contains(item)) {
-            System.out.println("O item não está presente no pedido.");
-            return;
-        }
-
-        itens.remove(item);
-    }
-
     public double calcularTotal() {
         double total = 0.0;
         for (ItemPedido item : itens) {
@@ -174,7 +160,7 @@ public class Pedido {
             for (int i = 0; i < itens.size(); i++) {
                 ItemPedido item = itens.get(i);
                 sb.append("  ").append(i + 1).append(". ");
-                sb.append(item != null ? item : "Item inválido");
+                sb.append(item != null ? item.getProduto().getNome() : "Item inválido");
                 sb.append("\n");
             }
         }

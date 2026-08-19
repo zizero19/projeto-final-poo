@@ -78,9 +78,4 @@ public class Turma {
     public void setDiasAula(List<DiaSemana> diasAula) {
         this.diasAula = diasAula != null ? new ArrayList<>(diasAula) : new ArrayList<>();
     }
-
-    @Override
-    public String toString() {
-        return nomeTurma;
-    }
 }

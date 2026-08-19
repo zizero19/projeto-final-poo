@@ -110,7 +110,7 @@ public class MenuPedido {
                     p.getNome(),
                     p.getCategoria(),
                     p.getPreco(),
-                    p.getQuantidadeEstoque()
+                    p.getQtdEstoque()
             });
         }
 
@@ -142,7 +142,7 @@ public class MenuPedido {
                         p.getNome(),
                         p.getCategoria(),
                         p.getPreco(),
-                        p.getQuantidadeEstoque()
+                        p.getQtdEstoque()
                 });
             }
 
@@ -191,7 +191,7 @@ public class MenuPedido {
         Consumer<Produto> atualizarEstoqueNaTabelaProdutos = produto -> {
             for (int i = 0; i < produtosExibidos.size(); i++) {
                 if (produtosExibidos.get(i).getId() == produto.getId()) {
-                    modelProdutos.setValueAt(produto.getQuantidadeEstoque(), i, 4);
+                    modelProdutos.setValueAt(produto.getQtdEstoque(), i, 4);
                     break;
                 }
             }
@@ -222,7 +222,7 @@ public class MenuPedido {
                 return;
             }
 
-            if (quantidade > produtoSelecionado.getQuantidadeEstoque()) {
+            if (quantidade > produtoSelecionado.getQtdEstoque()) {
                 JOptionPane.showMessageDialog(null, "Quantidade indisponível em estoque.", "Erro",
                         JOptionPane.ERROR_MESSAGE);
                 return;
@@ -238,7 +238,7 @@ public class MenuPedido {
                     String.format("R$ %.2f", item.getSubtotal())
             });
 
-            modelProdutos.setValueAt(produtoSelecionado.getQuantidadeEstoque(), linhaSelecionada, 4);
+            modelProdutos.setValueAt(produtoSelecionado.getQtdEstoque(), linhaSelecionada, 4);
 
             atualizarTotal.run();
 

@@ -44,10 +44,10 @@ public class DataMock {
     private static List<Turma> popularTurmas(Contexto contexto) {
         List<Turma> turmas = new ArrayList<>();
 
-        turmas.add(new Turma("1º Ano A - Ensino Médio", 32, Turno.MATUTINO, true, diasUteis()));
-        turmas.add(new Turma("2º Ano B - Ensino Médio", 28, Turno.VESPERTINO, true, diasUteis()));
-        turmas.add(new Turma("3º Ano A - Ensino Médio", 25, Turno.MATUTINO, true, diasUteis()));
-        turmas.add(new Turma("9º Ano C - Ensino Fundamental", 30, Turno.VESPERTINO, true, diasUteis()));
+        turmas.add(new Turma("Análise e Desenvolvimento de Sistemas", 32, Turno.NOTURNO, true, diasUteis()));
+        turmas.add(new Turma("Engenharia de Software", 28, Turno.VESPERTINO, true, diasUteis()));
+        turmas.add(new Turma("Sistemas da Informação", 25, Turno.MATUTINO, true, diasUteis()));
+        turmas.add(new Turma("Redes de Computador", 30, Turno.VESPERTINO, true, diasUteis()));
         turmas.add(new Turma("Técnico em Informática", 20, Turno.NOTURNO, true, diasSegundaQuartaSexta()));
 
         for (Turma turma : turmas) {

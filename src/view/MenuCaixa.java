@@ -125,8 +125,8 @@ public class MenuCaixa {
     public void listarCaixasFechados() {
         List<Caixa> caixas = contexto.getCaixaRepository().listarCaixas();
 
-        if (caixas.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Nenhuma caixa foi registrado");
+        if (caixas == null || caixas.isEmpty() || caixas.stream().noneMatch(caixa -> !caixa.isAberto())) {
+            JOptionPane.showMessageDialog(null, "Nenhum caixa foi registrado");
             return;
         }
 
