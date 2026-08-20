@@ -32,7 +32,7 @@ public class MenuCliente {
         int opcao;
 
         do {
-            opcao = Integer.parseInt(JOptionPane.showInputDialog(
+            String entrada = JOptionPane.showInputDialog(
                     "========= MENU CLIENTE =========\n"
                             + "1 - Cadastrar Cliente\n"
                             + "2 - Listar Clientes\n"
@@ -41,7 +41,13 @@ public class MenuCliente {
                             + "5 - Atualizar Cliente por CPF\n"
                             + "6 - Historico de Pedidos de Clientes\n"
                             + "0 - Voltar\n\n"
-                            + "Escolha uma opção:"));
+                            + "Escolha uma opção:");
+
+            if (entrada == null) {
+                return;
+            }
+
+            opcao = Integer.parseInt(entrada);
 
             switch (opcao) {
 

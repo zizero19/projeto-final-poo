@@ -35,7 +35,7 @@ public class MenuTurma {
         int opcao;
 
         do {
-            opcao = Integer.parseInt(JOptionPane.showInputDialog(
+            String entrada = JOptionPane.showInputDialog(
                     "========= MENU TURMA =========\n"
                             + "1 - Criar Turma\n"
                             + "2 - Listar Turmas\n"
@@ -45,7 +45,13 @@ public class MenuTurma {
                             + "6 - Excluir Turma\n"
                             + "7 - Resumo das Turmas de Hoje\n"
                             + "0 - Voltar\n\n"
-                            + "Escolha uma opção:"));
+                            + "Escolha uma opção:");
+
+            if (entrada == null) {
+                return;
+            }
+
+            opcao = Integer.parseInt(entrada);
 
             switch (opcao) {
 

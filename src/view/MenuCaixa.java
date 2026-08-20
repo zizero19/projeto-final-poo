@@ -25,7 +25,7 @@ public class MenuCaixa {
         int opcao;
 
         do {
-            opcao = Integer.parseInt(JOptionPane.showInputDialog(
+            String entrada = JOptionPane.showInputDialog(
                     "========= MENU CAIXA =========\n"
                             + "1 - Abrir Caixa\n"
                             + "2 - Fechar Caixa\n"
@@ -33,7 +33,13 @@ public class MenuCaixa {
                             + "4 - Buscar por ID\n"
                             + "5 - Listar Pedidos do Caixa Atual\n"
                             + "0 - Voltar\n\n"
-                            + "Escolha uma opção:"));
+                            + "Escolha uma opção:");
+
+            if (entrada == null) {
+                return;
+            }
+
+            opcao = Integer.parseInt(entrada);
 
             switch (opcao) {
 

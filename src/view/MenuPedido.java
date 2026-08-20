@@ -38,7 +38,7 @@ public class MenuPedido {
         int opcao;
 
         do {
-            opcao = Integer.parseInt(JOptionPane.showInputDialog(
+            String entrada = JOptionPane.showInputDialog(
                     "========= MENU PEDIDO =========\n"
                             + "1 - Realizar Pedido\n"
                             + "2 - Listar Pedidos\n"
@@ -47,7 +47,13 @@ public class MenuPedido {
                             + "5 - Cancelar Pedido\n"
                             + "6 - Remover Pedido\n"
                             + "0 - Voltar\n\n"
-                            + "Escolha uma opção:"));
+                            + "Escolha uma opção:");
+
+            if (entrada == null) {
+                return;
+            }
+
+            opcao = Integer.parseInt(entrada);
 
             switch (opcao) {
 

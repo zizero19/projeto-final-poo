@@ -15,7 +15,7 @@ public class MenuPrincipal {
         int opcao;
 
         do {
-            opcao = Integer.parseInt(JOptionPane.showInputDialog(
+            String entrada = JOptionPane.showInputDialog(
                     "========= MENU PRINCIPAL =========\n"
                             + "1 - Menu Cliente\n"
                             + "2 - Menu Produto\n"
@@ -23,7 +23,13 @@ public class MenuPrincipal {
                             + "4 - Menu Caixa\n"
                             + "5 - Menu Turma\n"
                             + "0 - Sair\n\n"
-                            + "Escolha uma opção:"));
+                            + "Escolha uma opção:");
+
+            if (entrada == null) {
+                break;
+            }
+
+            opcao = Integer.parseInt(entrada);
 
             switch (opcao) {
 
