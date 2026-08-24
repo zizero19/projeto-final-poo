@@ -1,4 +1,4 @@
-package view;
+package view.Turma;
 
 import java.awt.GridLayout;
 import java.awt.Dimension;
@@ -101,24 +101,7 @@ public class MenuTurma {
     }
 
     public void cadastrarTurma() {
-        Turma novaTurma = new Turma();
-        String nome = JOptionPane.showInputDialog("Digite o nome da turma:");
-        int qtdAlunos = Integer.parseInt(JOptionPane.showInputDialog("Digite a quantidade de alunos da turma:"));
-        Turno turno = lerTurnoTurma();
-        List<DiaSemana> diasAula = lerDiasAulaTurma();
-        novaTurma.setNomeTurma(nome);
-        novaTurma.setQtdALunos(qtdAlunos);
-        novaTurma.setTurno(turno);
-        novaTurma.setDiasAula(diasAula);
-        novaTurma.setAtivo(true);
-
-        if (contexto.getTurmaRepository().buscarTurma(novaTurma.getId()) != null) {
-            JOptionPane.showMessageDialog(null, "Já existe uma turma com esse ID. Por favor, escolha outro ID.");
-            return;
-        }
-
-        contexto.getTurmaRepository().salvarTurma(novaTurma);
-
+        new FormTurma(contexto).abrir();
     }
 
     public void resumoTurmasHoje() {

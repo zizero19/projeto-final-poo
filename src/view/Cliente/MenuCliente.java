@@ -1,4 +1,4 @@
-package view;
+package view.Cliente;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
@@ -88,29 +88,7 @@ public class MenuCliente {
     }
 
     private void cadastrarCliente() {
-        Cliente novoCliente = new Cliente();
-
-        String nome = JOptionPane.showInputDialog("Nome:");
-        String cpf = JOptionPane.showInputDialog("CPF (com . e -):");
-        String email = JOptionPane.showInputDialog("Email:");
-        Turma turma = lerTurma();
-        String telefone = JOptionPane.showInputDialog("Telefone (com () e -):");
-
-        novoCliente.setNome(nome);
-        novoCliente.setCpf(cpf);
-        novoCliente.setEmail(email);
-        novoCliente.setTurmaMatriculada(turma);
-        novoCliente.setTelefone(telefone);
-
-        Cliente clienteExistente = contexto.getClienteRepository().buscarPorCpf(cpf);
-
-        if (clienteExistente != null) {
-            JOptionPane.showMessageDialog(null, "Cliente com CPF " + cpf + " já existe.");
-            return;
-        }
-
-        contexto.getClienteRepository().salvarCliente(novoCliente);
-        JOptionPane.showMessageDialog(null, "Cliente cadastrado com sucesso!");
+        new FormCliente(contexto).abrir();
     }
 
     private void listarClientes() {

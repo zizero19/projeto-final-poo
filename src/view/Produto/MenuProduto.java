@@ -1,4 +1,4 @@
-package view;
+package view.Produto;
 
 import java.util.List;
 
@@ -85,19 +85,7 @@ public class MenuProduto {
     }
 
     public void cadastrarProduto() {
-        String nome = JOptionPane.showInputDialog("Digite o nome do produto:");
-        CategoriaProduto categoriaProduto = lerCategoria();
-        double preco = Double.parseDouble(JOptionPane.showInputDialog("Digite o preço do produto:"));
-        int quantidadeEstoque = Integer
-                .parseInt(JOptionPane.showInputDialog("Digite a quantidade em estoque do produto:"));
-
-        Produto novoProduto = new Produto(nome, categoriaProduto, preco, quantidadeEstoque);
-
-        if (contexto.getProdutoRepository().salvarProduto(novoProduto)) {
-            JOptionPane.showMessageDialog(null, "Produto cadastrado com sucesso!");
-        } else {
-            JOptionPane.showMessageDialog(null, "Produto ja existe ou esta com dados vazios.");
-        }
+        new FormProduto(contexto).abrir();
     }
 
     public void listarProdutos() {

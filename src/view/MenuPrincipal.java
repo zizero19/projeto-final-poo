@@ -12,6 +12,9 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 import app.Contexto;
+import view.Cliente.MenuCliente;
+import view.Produto.MenuProduto;
+import view.Turma.MenuTurma;
 
 public class MenuPrincipal {
     private Contexto contexto;
