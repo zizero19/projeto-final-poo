@@ -1,66 +1,112 @@
 package view;
 
-import javax.swing.JOptionPane;
+import java.awt.BorderLayout;
+import java.awt.Font;
+import java.awt.GridLayout;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 import app.Contexto;
 
 public class MenuPrincipal {
-    Contexto contexto;
+    private Contexto contexto;
 
     public MenuPrincipal(Contexto contexto) {
         this.contexto = contexto;
     }
 
     public void iniciar() {
-        int opcao;
 
-        do {
-            String entrada = JOptionPane.showInputDialog(
-                    "========= MENU PRINCIPAL =========\n"
-                            + "1 - Menu Cliente\n"
-                            + "2 - Menu Produto\n"
-                            + "3 - Menu Pedido\n"
-                            + "4 - Menu Caixa\n"
-                            + "5 - Menu Turma\n"
-                            + "0 - Sair\n\n"
-                            + "Escolha uma opção:");
+        JFrame tela = new JFrame("Menu Principal");
 
-            if (entrada == null) {
-                break;
-            }
+        tela.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        tela.setSize(700, 450);
+        tela.setLocationRelativeTo(null);
+        tela.setLayout(new BorderLayout());
 
-            opcao = Integer.parseInt(entrada);
+        JLabel titulo = new JLabel("Selecione uma opção:");
+        titulo.setFont(new Font("Arial", Font.BOLD, 20));
+        titulo.setHorizontalAlignment(SwingConstants.LEFT);
 
-            switch (opcao) {
+        JPanel painelTitulo = new JPanel(new BorderLayout());
+        painelTitulo.setBorder(
+                BorderFactory.createEmptyBorder(30, 30, 20, 30));
 
-                case 1:
-                    new MenuCliente(contexto).menu();
-                    break;
+        painelTitulo.add(titulo, BorderLayout.WEST);
 
-                case 2:
-                    new MenuProduto(contexto).menu();
-                    break;
+        JButton btnClientes = new JButton("Clientes");
+        JButton btnProdutos = new JButton("Produtos");
+        JButton btnPedidos = new JButton("Pedidos");
+        JButton btnCaixa = new JButton("Caixa");
+        JButton btnTurmas = new JButton("Turmas");
+        JButton btnSair = new JButton("Sair");
 
-                case 3:
-                    new MenuPedido(contexto).menu();
-                    break;
+        Font fonteBotoes = new Font("Arial", Font.BOLD, 18);
 
-                case 4:
-                    new MenuCaixa(contexto).menu();
-                    break;
+        btnClientes.setFont(fonteBotoes);
+        btnProdutos.setFont(fonteBotoes);
+        btnPedidos.setFont(fonteBotoes);
+        btnCaixa.setFont(fonteBotoes);
+        btnTurmas.setFont(fonteBotoes);
+        btnSair.setFont(fonteBotoes);
 
-                case 5:
-                    new MenuTurma(contexto).menu();
-                    break;
+        JPanel painelBotoes = new JPanel(
+                new GridLayout(3, 2, 10, 10));
 
-                case 0:
-                    JOptionPane.showMessageDialog(null, "Saindo do sistema...");
-                    break;
+        painelBotoes.setBorder(
+                BorderFactory.createEmptyBorder(2, 10, 10, 10));
 
-                default:
-                    JOptionPane.showMessageDialog(null, "Opção inválida.");
-            }
+        painelBotoes.add(btnClientes);
+        painelBotoes.add(btnProdutos);
 
-        } while (opcao != 0);
+        painelBotoes.add(btnPedidos);
+        painelBotoes.add(btnCaixa);
+
+        painelBotoes.add(btnTurmas);
+        painelBotoes.add(btnSair);
+
+        btnClientes.addActionListener(e -> {
+            tela.setVisible(false);
+            new MenuCliente(contexto).menu();
+            tela.setVisible(true);
+        });
+
+        btnProdutos.addActionListener(e -> {
+            tela.setVisible(false);
+            new MenuProduto(contexto).menu();
+            tela.setVisible(true);
+        });
+
+        btnPedidos.addActionListener(e -> {
+            tela.setVisible(false);
+            new MenuPedido(contexto).menu();
+            tela.setVisible(true);
+        });
+
+        btnCaixa.addActionListener(e -> {
+            tela.setVisible(false);
+            new MenuCaixa(contexto).menu();
+            tela.setVisible(true);
+        });
+
+        btnTurmas.addActionListener(e -> {
+            tela.setVisible(false);
+            new MenuTurma(contexto).menu();
+            tela.setVisible(true);
+        });
+
+        btnSair.addActionListener(e -> {
+            tela.dispose();
+        });
+
+        tela.add(painelTitulo, BorderLayout.NORTH);
+        tela.add(painelBotoes, BorderLayout.CENTER);
+
+        tela.setVisible(true);
     }
 }
