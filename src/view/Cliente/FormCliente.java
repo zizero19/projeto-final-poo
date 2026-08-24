@@ -1,17 +1,21 @@
 package view.Cliente;
 
 import java.awt.BorderLayout;
+import java.awt.Frame;
 import java.awt.GridLayout;
+import java.text.ParseException;
 import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.text.MaskFormatter;
 
 import app.Contexto;
 import model.Cliente;
@@ -22,14 +26,17 @@ public class FormCliente extends JDialog {
     private final Contexto contexto;
 
     private final JTextField txtNome = new JTextField();
-    private final JTextField txtCpf = new JTextField();
+    private final JFormattedTextField txtCpf;
     private final JTextField txtEmail = new JTextField();
-    private final JTextField txtTelefone = new JTextField();
+    private final JFormattedTextField txtTelefone;
     private final JComboBox<Turma> cbTurma = new JComboBox<>();
 
     public FormCliente(Contexto contexto) {
-        super((java.awt.Frame) null, "Cadastro de Cliente", true);
+        super((Frame) null, "Cadastro de Cliente", true);
         this.contexto = contexto;
+
+        txtCpf = criarCampoCpf();
+        txtTelefone = criarCampoTelefone();
 
         configurarTela();
         carregarTurmas();
@@ -67,6 +74,27 @@ public class FormCliente extends JDialog {
         setLayout(new BorderLayout());
         add(campos, BorderLayout.CENTER);
         add(botoes, BorderLayout.SOUTH);
+    }
+
+    private JFormattedTextField criarCampoCpf() {
+        try {
+            MaskFormatter mascara = new MaskFormatter("###.###.###-##");
+            mascara.setPlaceholderCharacter('_');
+            return new JFormattedTextField(mascara);
+        } catch (ParseException e) {
+            throw new RuntimeException("Erro ao criar máscara do CPF.", e);
+        }
+    }
+
+    private JFormattedTextField criarCampoTelefone() {
+        try {
+            MaskFormatter mascara = new MaskFormatter("(##) #####-####");
+            mascara.setPlaceholderCharacter('_');
+            return new JFormattedTextField(mascara);
+
+        } catch (ParseException e) {
+            throw new RuntimeException("Erro ao criar máscara do telefone.", e);
+        }
     }
 
     private void carregarTurmas() {

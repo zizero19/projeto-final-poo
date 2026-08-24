@@ -1,6 +1,7 @@
 package view.Turma;
 
 import java.awt.BorderLayout;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -33,7 +34,7 @@ public class FormTurma extends JDialog {
     private final List<JCheckBox> checksDias = new ArrayList<>();
 
     public FormTurma(Contexto contexto) {
-        super((java.awt.Frame) null, "Cadastro de Turma", true);
+        super((Frame) null, "Cadastro de Turma", true);
         this.contexto = contexto;
         configurarTela();
     }

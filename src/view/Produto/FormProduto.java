@@ -1,6 +1,7 @@
 package view.Produto;
 
 import java.awt.BorderLayout;
+import java.awt.Frame;
 import java.awt.GridLayout;
 
 import javax.swing.BorderFactory;
@@ -26,7 +27,7 @@ public class FormProduto extends JDialog {
     private final JTextField txtEstoque = new JTextField();
 
     public FormProduto(Contexto contexto) {
-        super((java.awt.Frame) null, "Cadastro de Produto", true);
+        super((Frame) null, "Cadastro de Produto", true);
         this.contexto = contexto;
         configurarTela();
     }
