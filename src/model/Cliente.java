@@ -3,6 +3,7 @@ package model;
 import java.util.List;
 
 public class Cliente extends Pessoa {
+    private Long id;
     private Turma turmaMatriculada;
     private String telefone;
     private boolean isDevendo;
@@ -25,6 +26,14 @@ public class Cliente extends Pessoa {
         this.telefone = telefone;
         this.isDevendo = isDevendo;
         this.historicoPedidos = historicoPedidos;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Turma getTurmaMatriculada() {

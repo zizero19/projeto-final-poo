@@ -3,9 +3,6 @@ package model;
 import model.enums.CategoriaProduto;
 
 public class Produto {
-
-    private static int PROXIMO_ID = 1;
-
     private int id;
     private String nome;
     private CategoriaProduto categoria;
@@ -13,15 +10,17 @@ public class Produto {
     private int qtdEstoque;
 
     public Produto() {
-        this.id = PROXIMO_ID++;
     }
 
     public Produto(String nome, CategoriaProduto categoria, double preco, int quantidadeEstoque) {
-        this();
         this.nome = nome;
         this.categoria = categoria;
         this.preco = preco;
         this.qtdEstoque = quantidadeEstoque;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public int getId() {
