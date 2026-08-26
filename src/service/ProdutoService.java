@@ -28,8 +28,11 @@ public class ProdutoService {
         return produtoRepository.buscarProduto(id);
     }
 
-    public Produto buscarProduto(String nome) {
-        return produtoRepository.buscarProduto(nome);
+    public List<Produto> buscarProdutosPorNome(String texto) {
+        if (texto == null || texto.isBlank()) {
+            return listarProdutos();
+        }
+        return produtoRepository.buscarProdutosPorNome(texto.trim());
     }
 
     public boolean excluirProduto(Long id) {

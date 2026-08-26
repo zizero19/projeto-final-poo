@@ -11,14 +11,14 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-import desktop.view.Cliente.MenuCliente;
+import desktop.view.Cliente.TelaCliente;
 import service.CaixaService;
 import service.ClienteService;
 import service.PedidoService;
 import service.ProdutoService;
 import service.TurmaService;
-import desktop.view.Produto.MenuProduto;
-import desktop.view.Turma.MenuTurma;
+import desktop.view.Produto.TelaProduto;
+import desktop.view.Turma.TelaTurma;
 
 public class MenuPrincipal {
 
@@ -93,13 +93,13 @@ public class MenuPrincipal {
 
         btnClientes.addActionListener(e -> {
             tela.setVisible(false);
-            new MenuCliente(clienteService, pedidoService, turmaService).menu();
+            new TelaCliente(clienteService, pedidoService, turmaService).abrir();
             tela.setVisible(true);
         });
 
         btnProdutos.addActionListener(e -> {
             tela.setVisible(false);
-            new MenuProduto(produtoService).menu();
+            new TelaProduto(produtoService).abrir();
             tela.setVisible(true);
         });
 
@@ -117,7 +117,7 @@ public class MenuPrincipal {
 
         btnTurmas.addActionListener(e -> {
             tela.setVisible(false);
-            new MenuTurma(turmaService).menu();
+            new TelaTurma(turmaService).abrir();
             tela.setVisible(true);
         });
 

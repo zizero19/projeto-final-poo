@@ -25,7 +25,7 @@ public class ClienteRepository {
                 """;
 
         try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, cliente.getNome());
             stmt.setString(2, cliente.getCpf());
@@ -59,8 +59,8 @@ public class ClienteRepository {
         String sql = "SELECT * FROM cliente ORDER BY id";
 
         try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
                 clientes.add(mapearCliente(rs));
@@ -76,7 +76,7 @@ public class ClienteRepository {
         String sql = "SELECT * FROM cliente WHERE cpf = ?";
 
         try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, cpf);
 
@@ -93,6 +93,34 @@ public class ClienteRepository {
         }
     }
 
+    public List<Cliente> buscarClientesPorNome(String texto) {
+        List<Cliente> clientes = new ArrayList<>();
+        String sql = """
+                SELECT * FROM cliente
+                 WHERE LOWER(nome) LIKE LOWER(?)
+                 ORDER BY
+                     CASE WHEN LOWER(nome) LIKE LOWER(?) THEN 0 ELSE 1 END,
+                     nome
+                """;
+
+        try (Connection conn = ConnectionFactory.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, "%" + texto + "%");
+            stmt.setString(2, texto + "%");
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    clientes.add(mapearCliente(rs));
+                }
+            }
+            return clientes;
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao buscar clientes por nome.", e);
+        }
+    }
+
     public Cliente atualizarCliente(Cliente cliente) {
         String sql = """
                 UPDATE cliente
@@ -106,7 +134,7 @@ public class ClienteRepository {
                 """;
 
         try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, cliente.getNome());
             stmt.setString(2, cliente.getCpf());
@@ -140,7 +168,7 @@ public class ClienteRepository {
         String sql = "DELETE FROM cliente WHERE cpf = ?";
 
         try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, cpf);
             stmt.executeUpdate();

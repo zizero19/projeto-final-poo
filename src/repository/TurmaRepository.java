@@ -116,6 +116,55 @@ public class TurmaRepository {
         }
     }
 
+    public boolean atualizarTurma(Turma turma) {
+        String sql = "UPDATE turma SET nome_turma = ?, qtd_alunos = ?, turno = ?, is_ativo = ?, dias_aula = ? WHERE id = ?";
+
+        try (Connection conn = ConnectionFactory.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, turma.getNomeTurma());
+            stmt.setInt(2, turma.getQtdALunos());
+            stmt.setString(3, turma.getTurno().name());
+            stmt.setBoolean(4, turma.isAtivo());
+            stmt.setString(5, serializarDiasAula(turma.getDiasAula()));
+            stmt.setLong(6, turma.getId());
+
+            int linhasAfetadas = stmt.executeUpdate();
+            return linhasAfetadas > 0;
+        } catch (SQLException e) {
+            System.out.println("Erro ao atualizar turma: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public List<Turma> buscarTurmasPorNome(String texto) {
+        List<Turma> turmas = new ArrayList<>();
+        String sql = """
+                SELECT * FROM turma
+                 WHERE LOWER(nome_turma) LIKE LOWER(?)
+                 ORDER BY
+                     CASE WHEN LOWER(nome_turma) LIKE LOWER(?) THEN 0 ELSE 1 END,
+                     nome_turma
+                """;
+
+        try (Connection conn = ConnectionFactory.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, "%" + texto + "%");
+            stmt.setString(2, texto + "%");
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    turmas.add(mapearTurma(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Erro ao buscar turmas por nome: " + e.getMessage());
+        }
+
+        return turmas;
+    }
+
     private Turma mapearTurma(ResultSet rs) throws SQLException {
         Turma turma = new Turma();
         turma.setId(rs.getLong("id"));

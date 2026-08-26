@@ -25,18 +25,27 @@ import model.enums.Turno;
 
 public class FormTurma extends JDialog {
     private final TurmaService turmaService;
+    private final Turma turmaEmEdicao;
+    private final Runnable aoSalvar;
 
     private final JTextField txtNome = new JTextField(25);
     private final JTextField txtQtdAlunos = new JTextField(25);
-
     private final JComboBox<Turno> cbTurno = new JComboBox<>(Turno.values());
-
     private final List<JCheckBox> checksDias = new ArrayList<>();
 
     public FormTurma(TurmaService turmaService) {
-        super((Frame) null, "Cadastro de Turma", true);
+        this(turmaService, null, null);
+    }
+
+    public FormTurma(TurmaService turmaService, Turma turmaEditar, Runnable aoSalvar) {
+        super((Frame) null, turmaEditar == null ? "Cadastro de Turma" : "Editar Turma", true);
         this.turmaService = turmaService;
+        this.turmaEmEdicao = turmaEditar;
+        this.aoSalvar = aoSalvar;
         configurarTela();
+        if (turmaEditar != null) {
+            preencherCampos(turmaEditar);
+        }
     }
 
     private void configurarTela() {
@@ -53,51 +62,43 @@ public class FormTurma extends JDialog {
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.WEST;
-
         painel.add(new JLabel("Nome da turma:"), gbc);
 
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
-
         painel.add(txtNome, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.weightx = 0;
         gbc.fill = GridBagConstraints.NONE;
-
         painel.add(new JLabel("Quantidade estimada de alunos:"), gbc);
 
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
-
         painel.add(txtQtdAlunos, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 2;
         gbc.weightx = 0;
         gbc.fill = GridBagConstraints.NONE;
-
         painel.add(new JLabel("Turno:"), gbc);
 
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
-
         painel.add(cbTurno, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.weightx = 0;
         gbc.anchor = GridBagConstraints.NORTHWEST;
-
         painel.add(new JLabel("Dias de aula:"), gbc);
+
         JPanel painelDias = new JPanel(new GridBagLayout());
-
         GridBagConstraints diasGbc = new GridBagConstraints();
-
         diasGbc.anchor = GridBagConstraints.WEST;
         diasGbc.insets = new Insets(4, 4, 4, 20);
 
@@ -106,13 +107,11 @@ public class FormTurma extends JDialog {
 
         for (DiaSemana dia : DiaSemana.values()) {
             JCheckBox check = new JCheckBox(dia.toString());
-
             check.setName(dia.name());
             checksDias.add(check);
 
             diasGbc.gridx = coluna;
             diasGbc.gridy = linha;
-
             painelDias.add(check, diasGbc);
 
             coluna++;
@@ -126,31 +125,34 @@ public class FormTurma extends JDialog {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
         gbc.weighty = 1;
-
         painel.add(painelDias, gbc);
 
+        boolean edicao = turmaEmEdicao != null;
         JButton btnCancelar = new JButton("Cancelar");
-        JButton btnCadastrar = new JButton("Cadastrar");
+        JButton btnSalvar = new JButton(edicao ? "Salvar" : "Cadastrar");
 
-        btnCancelar.addActionListener(e -> {
-            dispose();
-        });
-
-        btnCadastrar.addActionListener(e -> {
-            cadastrar();
-        });
+        btnCancelar.addActionListener(e -> dispose());
+        btnSalvar.addActionListener(e -> salvar());
 
         JPanel painelBotoes = new JPanel();
-
         painelBotoes.add(btnCancelar);
-        painelBotoes.add(btnCadastrar);
+        painelBotoes.add(btnSalvar);
 
-        setLayout(new java.awt.BorderLayout());
+        setLayout(new BorderLayout());
         add(painel, BorderLayout.CENTER);
         add(painelBotoes, BorderLayout.SOUTH);
     }
 
-    private void cadastrar() {
+    private void preencherCampos(Turma turma) {
+        txtNome.setText(turma.getNomeTurma());
+        txtQtdAlunos.setText(String.valueOf(turma.getQtdALunos()));
+        cbTurno.setSelectedItem(turma.getTurno());
+        for (JCheckBox check : checksDias) {
+            check.setSelected(turma.getDiasAula().contains(DiaSemana.valueOf(check.getName())));
+        }
+    }
+
+    private void salvar() {
         String nome = txtNome.getText().trim();
         String qtdTexto = txtQtdAlunos.getText().trim();
         Turno turno = (Turno) cbTurno.getSelectedItem();
@@ -167,7 +169,6 @@ public class FormTurma extends JDialog {
         }
 
         int qtdAlunos;
-
         try {
             qtdAlunos = Integer.parseInt(qtdTexto);
         } catch (NumberFormatException e) {
@@ -181,46 +182,57 @@ public class FormTurma extends JDialog {
         }
 
         if (turno == null) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Selecione o turno da turma.",
-                    "Dados inválidos",
+            JOptionPane.showMessageDialog(this, "Selecione o turno da turma.", "Dados inválidos",
                     JOptionPane.WARNING_MESSAGE);
             cbTurno.requestFocus();
             return;
         }
 
         if (dias.isEmpty()) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Selecione pelo menos um dia de aula.",
-                    "Dados inválidos",
+            JOptionPane.showMessageDialog(this, "Selecione pelo menos um dia de aula.", "Dados inválidos",
                     JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        if (turmaService.buscarTurma(nome) != null) {
+        boolean edicao = turmaEmEdicao != null;
+
+        if (!edicao && turmaService.buscarTurma(nome) != null) {
             erro("Já existe uma turma com esse nome.", txtNome);
             return;
         }
 
-        Turma turma = new Turma(nome, qtdAlunos, turno, true, dias);
-        if (turmaService.salvarTurma(turma) == null) {
-            JOptionPane.showMessageDialog(this, "Não foi possível cadastrar a turma.", "Erro", JOptionPane.ERROR_MESSAGE);
-            return;
+        if (!edicao) {
+            Turma turma = new Turma(nome, qtdAlunos, turno, true, dias);
+            if (turmaService.salvarTurma(turma) == null) {
+                JOptionPane.showMessageDialog(this, "Não foi possível cadastrar a turma.", "Erro",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        } else {
+            turmaEmEdicao.setNomeTurma(nome);
+            turmaEmEdicao.setQtdALunos(qtdAlunos);
+            turmaEmEdicao.setTurno(turno);
+            turmaEmEdicao.setDiasAula(dias);
+            if (!turmaService.atualizarTurma(turmaEmEdicao)) {
+                JOptionPane.showMessageDialog(this, "Não foi possível atualizar a turma.", "Erro",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
         }
 
-        JOptionPane.showMessageDialog(
-                this,
-                "Turma cadastrada com sucesso!",
-                "Sucesso",
-                JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this,
+                edicao ? "Turma atualizada com sucesso!" : "Turma cadastrada com sucesso!",
+                "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+
+        if (aoSalvar != null) {
+            aoSalvar.run();
+        }
+
         dispose();
     }
 
     private List<DiaSemana> obterDiasSelecionados() {
         List<DiaSemana> dias = new ArrayList<>();
-
         for (JCheckBox check : checksDias) {
             if (check.isSelected()) {
                 dias.add(DiaSemana.valueOf(check.getName()));
@@ -230,11 +242,7 @@ public class FormTurma extends JDialog {
     }
 
     private void erro(String mensagem, JTextField campo) {
-        JOptionPane.showMessageDialog(
-                this,
-                mensagem,
-                "Dados inválidos",
-                JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(this, mensagem, "Dados inválidos", JOptionPane.WARNING_MESSAGE);
         campo.requestFocus();
     }
 

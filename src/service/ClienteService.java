@@ -34,6 +34,13 @@ public class ClienteService {
         return clienteRepository.buscarPorCpf(cpf).orElse(null);
     }
 
+    public List<Cliente> buscarClientesPorNome(String texto) {
+        if (texto == null || texto.isBlank()) {
+            return listarClientes();
+        }
+        return clienteRepository.buscarClientesPorNome(texto.trim());
+    }
+
     public void excluirCliente(String cpf) {
         Cliente cliente = buscarPorCpf(cpf);
         if (cliente == null) {

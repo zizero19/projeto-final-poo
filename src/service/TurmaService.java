@@ -35,4 +35,18 @@ public class TurmaService {
     public boolean excluirTurma(Long id) {
         return turmaRepository.excluirTurma(id);
     }
+
+    public boolean atualizarTurma(Turma turma) {
+        if (turma == null || turma.getId() == null) {
+            throw new IllegalArgumentException("Turma inválida para atualização.");
+        }
+        return turmaRepository.atualizarTurma(turma);
+    }
+
+    public List<Turma> buscarTurmasPorNome(String texto) {
+        if (texto == null || texto.isBlank()) {
+            return listarTurmas();
+        }
+        return turmaRepository.buscarTurmasPorNome(texto.trim());
+    }
 }

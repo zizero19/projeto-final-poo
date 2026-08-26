@@ -134,6 +134,34 @@ public class ProdutoRepository {
         }
     }
 
+    public List<Produto> buscarProdutosPorNome(String texto) {
+        List<Produto> produtos = new ArrayList<>();
+        String sql = """
+                SELECT * FROM produto
+                 WHERE LOWER(nome) LIKE LOWER(?)
+                 ORDER BY
+                     CASE WHEN LOWER(nome) LIKE LOWER(?) THEN 0 ELSE 1 END,
+                     nome
+                """;
+
+        try (Connection conn = ConnectionFactory.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, "%" + texto + "%");
+            stmt.setString(2, texto + "%");
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    produtos.add(mapearProduto(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Erro ao buscar produtos por nome: " + e.getMessage());
+        }
+
+        return produtos;
+    }
+
     private Produto mapearProduto(ResultSet rs) throws SQLException {
         Produto produto = new Produto();
         produto.setId(rs.getLong("id"));

@@ -26,6 +26,9 @@ public class FormCliente extends JDialog {
 
     private final ClienteService clienteService;
     private final TurmaService turmaService;
+    private final Cliente clienteEmEdicao;
+    private final Runnable aoSalvar;
+
     private final JTextField txtNome = new JTextField();
     private final JFormattedTextField txtCpf;
     private final JTextField txtEmail = new JTextField();
@@ -33,15 +36,26 @@ public class FormCliente extends JDialog {
     private final JComboBox<Turma> cbTurma = new JComboBox<>();
 
     public FormCliente(ClienteService clienteService, TurmaService turmaService) {
-        super((Frame) null, "Cadastro de Cliente", true);
+        this(clienteService, turmaService, null, null);
+    }
+
+    public FormCliente(ClienteService clienteService, TurmaService turmaService,
+            Cliente clienteEditar, Runnable aoSalvar) {
+        super((Frame) null, clienteEditar == null ? "Cadastro de Cliente" : "Editar Cliente", true);
         this.clienteService = clienteService;
         this.turmaService = turmaService;
+        this.clienteEmEdicao = clienteEditar;
+        this.aoSalvar = aoSalvar;
 
         txtCpf = criarCampoCpf();
         txtTelefone = criarCampoTelefone();
 
         configurarTela();
         carregarTurmas();
+
+        if (clienteEditar != null) {
+            preencherCampos(clienteEditar);
+        }
     }
 
     private void configurarTela() {
@@ -63,15 +77,16 @@ public class FormCliente extends JDialog {
         campos.add(new JLabel("Telefone:"));
         campos.add(txtTelefone);
 
-        JButton btnCadastrar = new JButton("Cadastrar");
+        boolean edicao = clienteEmEdicao != null;
+        JButton btnSalvar = new JButton(edicao ? "Salvar" : "Cadastrar");
         JButton btnCancelar = new JButton("Cancelar");
 
-        btnCadastrar.addActionListener(e -> cadastrar());
+        btnSalvar.addActionListener(e -> salvar());
         btnCancelar.addActionListener(e -> dispose());
 
         JPanel botoes = new JPanel();
         botoes.add(btnCancelar);
-        botoes.add(btnCadastrar);
+        botoes.add(btnSalvar);
 
         setLayout(new BorderLayout());
         add(campos, BorderLayout.CENTER);
@@ -93,7 +108,6 @@ public class FormCliente extends JDialog {
             MaskFormatter mascara = new MaskFormatter("(##) #####-####");
             mascara.setPlaceholderCharacter('_');
             return new JFormattedTextField(mascara);
-
         } catch (ParseException e) {
             throw new RuntimeException("Erro ao criar máscara do telefone.", e);
         }
@@ -101,14 +115,22 @@ public class FormCliente extends JDialog {
 
     private void carregarTurmas() {
         List<Turma> turmas = turmaService.listarTurmas();
-
         cbTurma.addItem(null);
         for (Turma turma : turmas) {
             cbTurma.addItem(turma);
         }
     }
 
-    private void cadastrar() {
+    private void preencherCampos(Cliente cliente) {
+        txtNome.setText(cliente.getNome());
+        txtCpf.setText(cliente.getCpf());
+        txtCpf.setEditable(false);
+        txtEmail.setText(cliente.getEmail());
+        txtTelefone.setText(cliente.getTelefone());
+        cbTurma.setSelectedItem(cliente.getTurmaMatriculada());
+    }
+
+    private void salvar() {
         String nome = txtNome.getText().trim();
         String cpf = txtCpf.getText().trim();
         String email = txtEmail.getText().trim();
@@ -136,45 +158,48 @@ public class FormCliente extends JDialog {
         }
 
         if (turma == null) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "A turma deve ser selecionada.",
-                    "Dados inválidos",
+            JOptionPane.showMessageDialog(this, "A turma deve ser selecionada.", "Dados inválidos",
                     JOptionPane.WARNING_MESSAGE);
-
             cbTurma.requestFocus();
             return;
         }
 
-        if (clienteService.buscarPorCpf(cpf) != null) {
+        boolean edicao = clienteEmEdicao != null;
+
+        if (!edicao && clienteService.buscarPorCpf(cpf) != null) {
             erro("Já existe um cliente com o CPF " + cpf + ".", txtCpf);
             return;
         }
 
-        Cliente cliente = new Cliente();
-        cliente.setNome(nome);
-        cliente.setCpf(cpf);
-        cliente.setEmail(email);
-        cliente.setTelefone(telefone);
-        cliente.setTurmaMatriculada(turma);
+        if (!edicao) {
+            Cliente cliente = new Cliente();
+            cliente.setNome(nome);
+            cliente.setCpf(cpf);
+            cliente.setEmail(email);
+            cliente.setTelefone(telefone);
+            cliente.setTurmaMatriculada(turma);
+            clienteService.salvarCliente(cliente);
+        } else {
+            clienteEmEdicao.setNome(nome);
+            clienteEmEdicao.setEmail(email);
+            clienteEmEdicao.setTelefone(telefone);
+            clienteEmEdicao.setTurmaMatriculada(turma);
+            clienteService.atualizarCliente(clienteEmEdicao);
+        }
 
-        clienteService.salvarCliente(cliente);
+        JOptionPane.showMessageDialog(this,
+                edicao ? "Cliente atualizado com sucesso!" : "Cliente cadastrado com sucesso!",
+                "Sucesso", JOptionPane.INFORMATION_MESSAGE);
 
-        JOptionPane.showMessageDialog(
-                this,
-                "Cliente cadastrado com sucesso!",
-                "Sucesso",
-                JOptionPane.INFORMATION_MESSAGE);
+        if (aoSalvar != null) {
+            aoSalvar.run();
+        }
 
         dispose();
     }
 
     private void erro(String mensagem, JTextField campo) {
-        JOptionPane.showMessageDialog(
-                this,
-                mensagem,
-                "Dados inválidos",
-                JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(this, mensagem, "Dados inválidos", JOptionPane.WARNING_MESSAGE);
         campo.requestFocus();
     }
 
