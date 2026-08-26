@@ -1,4 +1,4 @@
-package view.Cliente;
+package desktop.view.Cliente;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
@@ -15,17 +15,25 @@ import javax.swing.ListSelectionModel;
 import javax.swing.plaf.DimensionUIResource;
 import javax.swing.table.DefaultTableModel;
 
-import app.Contexto;
+import service.ClienteService;
+import service.PedidoService;
+import service.TurmaService;
 import model.Cliente;
 import model.ItemPedido;
 import model.Pedido;
 import model.Turma;
+import util.FormatacaoUtil;
 
 public class MenuCliente {
-    private Contexto contexto;
 
-    public MenuCliente(Contexto contexto) {
-        this.contexto = contexto;
+    private final ClienteService clienteService;
+    private final PedidoService pedidoService;
+    private final TurmaService turmaService;
+
+    public MenuCliente(ClienteService clienteService, PedidoService pedidoService, TurmaService turmaService) {
+        this.clienteService = clienteService;
+        this.pedidoService = pedidoService;
+        this.turmaService = turmaService;
     }
 
     public void menu() {
@@ -50,49 +58,40 @@ public class MenuCliente {
             opcao = Integer.parseInt(entrada);
 
             switch (opcao) {
-
                 case 1:
                     cadastrarCliente();
                     break;
-
                 case 2:
                     listarClientes();
                     break;
-
                 case 3:
                     buscarCliente();
                     break;
-
                 case 4:
                     removerCliente();
                     break;
-
                 case 5:
                     atualizarCliente();
                     break;
-
                 case 6:
                     historicoPedidos();
                     break;
-
                 case 0:
                     JOptionPane.showMessageDialog(null, "Voltando ao menu principal...");
                     break;
-
                 default:
                     JOptionPane.showMessageDialog(null, "Opção inválida.");
             }
 
         } while (opcao != 0);
-
     }
 
     private void cadastrarCliente() {
-        new FormCliente(contexto).abrir();
+        new FormCliente(clienteService, turmaService).abrir();
     }
 
     private void listarClientes() {
-        List<Cliente> clientes = contexto.getClienteRepository().listarClientes();
+        List<Cliente> clientes = clienteService.listarClientes();
 
         if (clientes.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Nenhum cliente cadastrado.");
@@ -100,7 +99,6 @@ public class MenuCliente {
         }
 
         String[] colunas = { "Nome", "CPF", "Email", "Turma Matriculada", "Telefone", "Saldo Devedor" };
-
         DefaultTableModel model = new DefaultTableModel(colunas, 0);
 
         for (Cliente c : clientes) {
@@ -108,14 +106,13 @@ public class MenuCliente {
                     c.getNome(),
                     c.getCpf(),
                     c.getEmail(),
-                    c.getTurmaMatriculada().getNomeTurma(),
+                    c.getTurmaMatriculada() != null ? c.getTurmaMatriculada().getNomeTurma() : "-",
                     c.getTelefone(),
-                    contexto.getPedidoRepository().calcularSaldoDevedor(c.getCpf())
+                    FormatacaoUtil.formatarMoeda(pedidoService.calcularSaldoDevedor(c.getCpf()))
             });
         }
 
         JTable tabela = new JTable(model);
-
         JScrollPane scroll = new JScrollPane(tabela);
         scroll.setPreferredSize(new DimensionUIResource(600, 300));
 
@@ -125,15 +122,11 @@ public class MenuCliente {
     private void buscarCliente() {
         String cpf = JOptionPane.showInputDialog("CPF:");
 
-        Cliente cliente = contexto.getClienteRepository().buscarPorCpf(cpf);
+        Cliente cliente = clienteService.buscarPorCpf(cpf);
 
         if (cliente != null) {
-
             String informacoes = cliente.toString();
-
-            List<Pedido> pedidos = contexto.getPedidoRepository()
-                    .buscarPedidosPorCpfDeCliente(cpf);
-
+            List<Pedido> pedidos = pedidoService.buscarPedidosPorCpfDeCliente(cpf);
             StringBuilder historico = new StringBuilder();
 
             historico.append("\nHistórico de Pedidos:\n");
@@ -146,33 +139,26 @@ public class MenuCliente {
                             .append(pedido.getId())
                             .append(" - ")
                             .append(pedido.getFormaPagamento())
-                            .append(" - R$ ")
-                            .append(String.format("%.2f", pedido.calcularTotal()))
+                            .append(" - ")
+                            .append(FormatacaoUtil.formatarMoeda(pedido.calcularTotal()))
                             .append(" - ")
                             .append(pedido.getStatus())
                             .append("\n");
                 }
             }
 
-            JOptionPane.showMessageDialog(
-                    null,
-                    informacoes + historico,
-                    "Cliente",
-                    JOptionPane.INFORMATION_MESSAGE);
-
+            JOptionPane.showMessageDialog(null, informacoes + historico, "Cliente", JOptionPane.INFORMATION_MESSAGE);
         } else {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "Cliente com CPF " + cpf + " não encontrado.");
+            JOptionPane.showMessageDialog(null, "Cliente com CPF " + cpf + " não encontrado.");
         }
     }
 
     private void removerCliente() {
         String cpf = JOptionPane.showInputDialog("CPF:  ");
-        Cliente cliente = contexto.getClienteRepository().buscarPorCpf(cpf);
+        Cliente cliente = clienteService.buscarPorCpf(cpf);
 
         if (cliente != null) {
-            contexto.getClienteRepository().excluirCliente(cpf);
+            clienteService.excluirCliente(cpf);
             JOptionPane.showMessageDialog(null, "Cliente com CPF " + cpf + " removido com sucesso!");
         } else {
             JOptionPane.showMessageDialog(null, "Cliente não encontrado.");
@@ -182,7 +168,7 @@ public class MenuCliente {
     private void atualizarCliente() {
         String cpf = JOptionPane.showInputDialog(null, "CPF:");
 
-        Cliente cliente = contexto.getClienteRepository().buscarPorCpf(cpf);
+        Cliente cliente = clienteService.buscarPorCpf(cpf);
 
         if (cliente == null) {
             JOptionPane.showMessageDialog(null, "Cliente com CPF " + cpf + " não encontrado");
@@ -194,7 +180,7 @@ public class MenuCliente {
         JTextField txtEmail = new JTextField(cliente.getEmail());
         JComboBox<Turma> comboTurmas = new JComboBox<>();
 
-        List<Turma> turmas = contexto.getTurmaRepository().listarTurmas();
+        List<Turma> turmas = turmaService.listarTurmas();
 
         for (Turma turma : turmas) {
             comboTurmas.addItem(turma);
@@ -220,12 +206,8 @@ public class MenuCliente {
         painel.add(new JLabel("Telefone"));
         painel.add(txtTelefone);
 
-        int opcao = JOptionPane.showConfirmDialog(
-                null,
-                painel,
-                "Atualizar Cliente",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE);
+        int opcao = JOptionPane.showConfirmDialog(null, painel, "Atualizar Cliente",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (opcao == JOptionPane.OK_OPTION) {
             cliente.setNome(txtNome.getText());
@@ -233,8 +215,9 @@ public class MenuCliente {
             cliente.setEmail(txtEmail.getText());
             cliente.setTurmaMatriculada((Turma) comboTurmas.getSelectedItem());
             cliente.setTelefone(txtTelefone.getText());
+            clienteService.atualizarCliente(cliente);
+            JOptionPane.showMessageDialog(null, "Cliente atualizado com sucesso!");
         }
-
     }
 
     public void historicoPedidos() {
@@ -244,14 +227,14 @@ public class MenuCliente {
             return;
         }
 
-        Cliente clienteBuscado = contexto.getClienteRepository().buscarPorCpf(cpf);
+        Cliente clienteBuscado = clienteService.buscarPorCpf(cpf);
 
         if (clienteBuscado == null) {
             JOptionPane.showMessageDialog(null, "Cliente com o CPF " + cpf + " não encontrado.");
             return;
         }
 
-        List<Pedido> pedidosDoCliente = contexto.getPedidoRepository().buscarPedidosPorCpfDeCliente(cpf);
+        List<Pedido> pedidosDoCliente = pedidoService.buscarPedidosPorCpfDeCliente(cpf);
 
         if (pedidosDoCliente.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Nenhum pedido associado a esse cliente.");
@@ -264,10 +247,10 @@ public class MenuCliente {
         for (Pedido pedido : pedidosDoCliente) {
             model.addRow(new Object[] {
                     pedido.getId(),
-                    pedido.getDataHora(),
+                    FormatacaoUtil.formatarDataHora(pedido.getDataHora()),
                     pedido.getStatus(),
                     pedido.getFormaPagamento(),
-                    String.format("R$ %.2f", pedido.calcularTotal()),
+                    FormatacaoUtil.formatarMoeda(pedido.calcularTotal()),
                     pedido.getObservacoes() == null ? "" : pedido.getObservacoes()
             });
         }
@@ -282,7 +265,6 @@ public class MenuCliente {
             }
 
             int linhaSelecionada = tabela.getSelectedRow();
-
             if (linhaSelecionada != -1) {
                 Pedido pedidoSelecionado = pedidosDoCliente.get(linhaSelecionada);
                 mostrarDetalhesPedido(pedidoSelecionado);
@@ -290,23 +272,17 @@ public class MenuCliente {
             }
         });
 
-        JOptionPane.showMessageDialog(null, scroll,
-                "Histórico de Pedidos de " + clienteBuscado.getNome(),
+        JOptionPane.showMessageDialog(null, scroll, "Histórico de Pedidos de " + clienteBuscado.getNome(),
                 JOptionPane.INFORMATION_MESSAGE);
     }
 
     public void mostrarDetalhesPedido(Pedido pedido) {
         if (pedido == null) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "Pedido não encontrado.",
-                    "Erro",
-                    JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Pedido não encontrado.", "Erro", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         String[] colunas = { "Produto", "Quantidade", "Preço Unitário", "Subtotal" };
-
         DefaultTableModel modelItens = new DefaultTableModel(colunas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -323,8 +299,8 @@ public class MenuCliente {
                 modelItens.addRow(new Object[] {
                         item.getProduto().getNome(),
                         item.getQuantidade(),
-                        String.format("R$ %.2f", item.getProduto().getPreco()),
-                        String.format("R$ %.2f", item.getSubtotal())
+                        FormatacaoUtil.formatarMoeda(item.getProduto().getPreco()),
+                        FormatacaoUtil.formatarMoeda(item.getSubtotal())
                 });
             }
         }
@@ -341,16 +317,15 @@ public class MenuCliente {
         painelInformacoes.add(new JLabel(String.valueOf(pedido.getId())));
 
         painelInformacoes.add(new JLabel("Data/Hora:"));
-        painelInformacoes.add(new JLabel(
-                pedido.getDataHora() != null ? pedido.getDataHora().toString() : "-"));
+        painelInformacoes.add(
+                new JLabel(pedido.getDataHora() != null ? FormatacaoUtil.formatarDataHora(pedido.getDataHora()) : "-"));
 
         painelInformacoes.add(new JLabel("Status:"));
-        painelInformacoes.add(new JLabel(
-                pedido.getStatus() != null ? pedido.getStatus().toString() : "-"));
+        painelInformacoes.add(new JLabel(pedido.getStatus() != null ? pedido.getStatus().toString() : "-"));
 
         painelInformacoes.add(new JLabel("Forma de Pagamento:"));
-        painelInformacoes.add(new JLabel(
-                pedido.getFormaPagamento() != null ? pedido.getFormaPagamento().toString() : "-"));
+        painelInformacoes
+                .add(new JLabel(pedido.getFormaPagamento() != null ? pedido.getFormaPagamento().toString() : "-"));
 
         if (pedido.getCliente() != null) {
             painelInformacoes.add(new JLabel("Cliente:"));
@@ -365,23 +340,19 @@ public class MenuCliente {
             painelInformacoes.add(new JLabel(pedido.getObservacoes()));
         }
 
-        JLabel lblTotal = new JLabel(
-                String.format("Total do Pedido: R$ %.2f", pedido.calcularTotal()));
+        JLabel lblTotal = new JLabel("Total do Pedido: " + FormatacaoUtil.formatarMoeda(pedido.calcularTotal()));
 
         JPanel painelPrincipal = new JPanel(new BorderLayout(5, 5));
         painelPrincipal.add(painelInformacoes, BorderLayout.NORTH);
         painelPrincipal.add(scrollItens, BorderLayout.CENTER);
         painelPrincipal.add(lblTotal, BorderLayout.SOUTH);
 
-        JOptionPane.showMessageDialog(
-                null,
-                painelPrincipal,
-                "Detalhes do Pedido #" + pedido.getId(),
+        JOptionPane.showMessageDialog(null, painelPrincipal, "Detalhes do Pedido #" + pedido.getId(),
                 JOptionPane.PLAIN_MESSAGE);
     }
 
     public Turma lerTurma() {
-        List<Turma> turmas = contexto.getTurmaRepository().listarTurmas();
+        List<Turma> turmas = turmaService.listarTurmas();
         Turma turmaSelecionada = new Turma();
 
         JComboBox<Turma> comboTurmas = new JComboBox<>();
@@ -390,11 +361,7 @@ public class MenuCliente {
             comboTurmas.addItem(turma);
         }
 
-        int opcao = JOptionPane.showConfirmDialog(
-                null,
-                comboTurmas,
-                "Selecione a turma",
-                JOptionPane.OK_CANCEL_OPTION);
+        int opcao = JOptionPane.showConfirmDialog(null, comboTurmas, "Selecione a turma", JOptionPane.OK_CANCEL_OPTION);
 
         if (opcao == JOptionPane.OK_OPTION) {
             turmaSelecionada = (Turma) comboTurmas.getSelectedItem();

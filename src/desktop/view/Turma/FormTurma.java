@@ -1,4 +1,4 @@
-package view.Turma;
+package desktop.view.Turma;
 
 import java.awt.BorderLayout;
 import java.awt.Frame;
@@ -18,13 +18,13 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import app.Contexto;
+import service.TurmaService;
 import model.Turma;
 import model.enums.DiaSemana;
 import model.enums.Turno;
 
 public class FormTurma extends JDialog {
-    private final Contexto contexto;
+    private final TurmaService turmaService;
 
     private final JTextField txtNome = new JTextField(25);
     private final JTextField txtQtdAlunos = new JTextField(25);
@@ -33,9 +33,9 @@ public class FormTurma extends JDialog {
 
     private final List<JCheckBox> checksDias = new ArrayList<>();
 
-    public FormTurma(Contexto contexto) {
+    public FormTurma(TurmaService turmaService) {
         super((Frame) null, "Cadastro de Turma", true);
-        this.contexto = contexto;
+        this.turmaService = turmaService;
         configurarTela();
     }
 
@@ -199,14 +199,16 @@ public class FormTurma extends JDialog {
             return;
         }
 
-        if (contexto.getTurmaRepository().buscarTurma(nome) != null) {
+        if (turmaService.buscarTurma(nome) != null) {
             erro("Já existe uma turma com esse nome.", txtNome);
             return;
         }
 
         Turma turma = new Turma(nome, qtdAlunos, turno, true, dias);
-
-        contexto.getTurmaRepository().salvarTurma(turma);
+        if (turmaService.salvarTurma(turma) == null) {
+            JOptionPane.showMessageDialog(this, "Não foi possível cadastrar a turma.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         JOptionPane.showMessageDialog(
                 this,

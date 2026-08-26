@@ -80,7 +80,5 @@ public class Cliente extends Pessoa {
         sb.append("Está devendo: ").append(isDevendo ? "Sim" : "Não").append("\n");
         sb.append("Histórico de Pedidos:\n");
         return sb.toString();
-
     }
-
 }

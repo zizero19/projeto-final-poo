@@ -1,4 +1,4 @@
-package view;
+package desktop.view;
 
 import java.util.List;
 
@@ -10,15 +10,16 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.ListSelectionModel;
 
 import model.Pedido;
+import util.FormatacaoUtil;
 
-import app.Contexto;
+import service.CaixaService;
 import model.Caixa;
 
 public class MenuCaixa {
-    private Contexto contexto;
+    private final CaixaService caixaService;
 
-    public MenuCaixa(Contexto contexto) {
-        this.contexto = contexto;
+    public MenuCaixa(CaixaService caixaService) {
+        this.caixaService = caixaService;
     }
 
     public void menu() {
@@ -42,48 +43,34 @@ public class MenuCaixa {
             opcao = Integer.parseInt(entrada);
 
             switch (opcao) {
-
                 case 1:
                     abrirCaixa();
                     break;
-
                 case 2:
                     fecharCaixa();
                     break;
-
                 case 3:
                     listarCaixasFechados();
                     break;
-
                 case 4:
                     buscarCaixaPorId();
                     break;
-
                 case 5:
                     listarPedidosCaixaAtual();
                     break;
-
                 case 0:
-                    JOptionPane.showMessageDialog(
-                            null,
-                            "Voltando ao menu principal.",
-                            "Informação",
+                    JOptionPane.showMessageDialog(null, "Voltando ao menu principal.", "Informação",
                             JOptionPane.INFORMATION_MESSAGE);
                     break;
-
                 default:
-                    JOptionPane.showMessageDialog(
-                            null,
-                            "Opção inválida! Tente novamente.",
-                            "Erro",
+                    JOptionPane.showMessageDialog(null, "Opção inválida! Tente novamente.", "Erro",
                             JOptionPane.ERROR_MESSAGE);
             }
         } while (opcao != 0);
-
     }
 
     public void abrirCaixa() {
-        if (contexto.getCaixaRepository().buscarCaixaAberto() != null) {
+        if (caixaService.buscarCaixaAberto() != null) {
             JOptionPane.showMessageDialog(null, "Um caixa ja esta aberto.");
             return;
         }
@@ -96,17 +83,15 @@ public class MenuCaixa {
 
         if (confirmacao == JOptionPane.YES_OPTION) {
             Caixa caixaAberto = new Caixa();
-            contexto.getCaixaRepository().salvarCaixa(caixaAberto);
-
+            caixaService.salvarCaixa(caixaAberto);
             JOptionPane.showMessageDialog(null, "Caixa aberto com sucesso.");
         } else if (confirmacao == JOptionPane.NO_OPTION) {
             JOptionPane.showMessageDialog(null, "Retornando para o menu.");
-            return;
         }
     }
 
     public void fecharCaixa() {
-        if (contexto.getCaixaRepository().buscarCaixaAberto() == null) {
+        if (caixaService.buscarCaixaAberto() == null) {
             JOptionPane.showMessageDialog(null, "Não há caixa aberto no momento.");
             return;
         }
@@ -118,18 +103,15 @@ public class MenuCaixa {
                 JOptionPane.YES_NO_OPTION);
 
         if (confirmacao == JOptionPane.YES_OPTION) {
-            contexto.getCaixaRepository().buscarCaixaAberto().fechar();
-
+            caixaService.buscarCaixaAberto().fechar();
             JOptionPane.showMessageDialog(null, "Caixa fechado com sucesso.");
         } else if (confirmacao == JOptionPane.NO_OPTION) {
             JOptionPane.showMessageDialog(null, "Retornando para o menu.");
-            return;
         }
-
     }
 
     public void listarCaixasFechados() {
-        List<Caixa> caixas = contexto.getCaixaRepository().listarCaixas();
+        List<Caixa> caixas = caixaService.listarCaixas();
 
         if (caixas == null || caixas.isEmpty() || caixas.stream().noneMatch(caixa -> !caixa.isAberto())) {
             JOptionPane.showMessageDialog(null, "Nenhum caixa foi registrado");
@@ -137,56 +119,48 @@ public class MenuCaixa {
         }
 
         String[] colunas = { "ID", "Total de Vendas", "Data Abertura", "Data Fechamento" };
-
         DefaultTableModel model = new DefaultTableModel(colunas, 0);
 
         for (Caixa caixa : caixas) {
             if (!caixa.isAberto()) {
                 model.addRow(new Object[] {
                         caixa.getId(),
-                        caixa.getTotalVendas(),
-                        caixa.getAbertura(),
-                        caixa.getFechamento()
+                        FormatacaoUtil.formatarMoeda(caixa.getTotalVendas()),
+                        FormatacaoUtil.formatarDataHora(caixa.getAbertura()),
+                        FormatacaoUtil.formatarDataHora(caixa.getFechamento())
                 });
             }
         }
 
         JTable tabela = new JTable(model);
-
         JScrollPane scroll = new JScrollPane(tabela);
         scroll.setPreferredSize(new DimensionUIResource(600, 300));
-
         JOptionPane.showMessageDialog(null, scroll);
-
     }
 
     public void buscarCaixaPorId() {
-        int id = Integer.parseInt(JOptionPane.showInputDialog(null, "Digite o ID do caixa:"));
-
-        Caixa caixaBuscado = contexto.getCaixaRepository().buscarPorId(id);
+        Long id = Long.parseLong(JOptionPane.showInputDialog(null, "Digite o ID do caixa:"));
+        Caixa caixaBuscado = caixaService.buscarPorId(id);
 
         if (caixaBuscado != null) {
             JOptionPane.showMessageDialog(null,
                     "Caixa encontrado:\n"
                             + "ID: " + caixaBuscado.getId() + "\n"
-                            + "Total de Vendas: " + caixaBuscado.getTotalVendas() + "\n"
-                            + "Data e Hora Abertura: " + caixaBuscado.getAbertura() + "\n"
-                            + "Data e Hora Fechamento: " + caixaBuscado.getFechamento() + "\n");
+                            + "Total de Vendas: " + FormatacaoUtil.formatarMoeda(caixaBuscado.getTotalVendas()) + "\n"
+                            + "Data e Hora Abertura: " + FormatacaoUtil.formatarDataHora(caixaBuscado.getAbertura())
+                            + "\n"
+                            + "Data e Hora Fechamento: " + FormatacaoUtil.formatarDataHora(caixaBuscado.getFechamento())
+                            + "\n");
         } else {
             JOptionPane.showMessageDialog(null, "Caixa não encontrado");
-            return;
         }
-
     }
 
     public void listarPedidosCaixaAtual() {
-        Caixa caixaAtual = contexto.getCaixaRepository().buscarCaixaAberto();
+        Caixa caixaAtual = caixaService.buscarCaixaAberto();
 
         if (caixaAtual == null) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "Não há caixa aberto no momento.",
-                    "Informação",
+            JOptionPane.showMessageDialog(null, "Não há caixa aberto no momento.", "Informação",
                     JOptionPane.INFORMATION_MESSAGE);
             return;
         }
@@ -194,16 +168,12 @@ public class MenuCaixa {
         List<Pedido> pedidos = caixaAtual.getPedidos();
 
         if (pedidos == null || pedidos.isEmpty()) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "Nenhum pedido foi registrado no caixa atual.",
-                    "Informação",
+            JOptionPane.showMessageDialog(null, "Nenhum pedido foi registrado no caixa atual.", "Informação",
                     JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
         String[] colunas = { "ID", "Cliente", "Data/Hora", "Status", "Forma de Pagamento", "Total" };
-
         DefaultTableModel model = new DefaultTableModel(colunas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -215,40 +185,19 @@ public class MenuCaixa {
             model.addRow(new Object[] {
                     p.getId(),
                     p.getCliente() != null ? p.getCliente().getNome() : "-",
-                    p.getDataHora(),
+                    FormatacaoUtil.formatarDataHora(p.getDataHora()),
                     p.getStatus(),
                     p.getFormaPagamento(),
-                    String.format("R$ %.2f", p.calcularTotal())
+                    FormatacaoUtil.formatarMoeda(p.calcularTotal())
             });
         }
 
         JTable tabela = new JTable(model);
         tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
         JScrollPane scroll = new JScrollPane(tabela);
         scroll.setPreferredSize(new DimensionUIResource(700, 300));
 
-        tabela.getSelectionModel().addListSelectionListener(e -> {
-            if (e.getValueIsAdjusting()) {
-                return;
-            }
-
-            int linhaSelecionada = tabela.getSelectedRow();
-
-            if (linhaSelecionada != -1) {
-                Pedido pedidoSelecionado = pedidos.get(linhaSelecionada);
-
-                new MenuPedido(contexto).mostrarDetalhesPedido(pedidoSelecionado);
-
-                tabela.clearSelection();
-            }
-        });
-
-        JOptionPane.showMessageDialog(
-                null,
-                scroll,
-                "Pedidos do Caixa Atual - Selecione um pedido para ver os detalhes",
+        JOptionPane.showMessageDialog(null, scroll, "Pedidos do Caixa Atual",
                 JOptionPane.PLAIN_MESSAGE);
     }
-
 }

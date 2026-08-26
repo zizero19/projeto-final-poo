@@ -4,11 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import db.ConnectionFactory;
+import infrastructure.database.ConnectionFactory;
 import model.Produto;
 import model.enums.CategoriaProduto;
 
@@ -19,28 +18,27 @@ public class ProdutoRepository {
             return false;
         }
 
-        String sql = "INSERT INTO produto (nome, categoria, preco, qtd_estoque) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO produto (nome, categoria, preco, qtd_estoque) VALUES (?, ?, ?, ?) RETURNING id";
 
         try (Connection conn = ConnectionFactory.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, produto.getNome());
             stmt.setString(2, produto.getCategoria().name());
-            stmt.setDouble(3, produto.getPreco());
+            stmt.setBigDecimal(3, produto.getPreco());
             stmt.setInt(4, produto.getQtdEstoque());
-            stmt.executeUpdate();
 
-            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    produto.setId(generatedKeys.getInt(1));
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    produto.setId(rs.getLong(1));
+                    return true;
                 }
             }
-
-            return true;
         } catch (SQLException e) {
             System.out.println("Erro ao salvar produto: " + e.getMessage());
-            return false;
         }
+
+        return false;
     }
 
     public List<Produto> listarProdutos() {
@@ -61,13 +59,13 @@ public class ProdutoRepository {
         return produtos;
     }
 
-    public Produto buscarProduto(int id) {
+    public Produto buscarProduto(Long id) {
         String sql = "SELECT * FROM produto WHERE id = ?";
 
         try (Connection conn = ConnectionFactory.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, id);
+            stmt.setLong(1, id);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -101,13 +99,13 @@ public class ProdutoRepository {
         return null;
     }
 
-    public boolean excluirProduto(int id) {
+    public boolean excluirProduto(Long id) {
         String sql = "DELETE FROM produto WHERE id = ?";
 
         try (Connection conn = ConnectionFactory.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, id);
+            stmt.setLong(1, id);
             int linhasAfetadas = stmt.executeUpdate();
             return linhasAfetadas > 0;
         } catch (SQLException e) {
@@ -124,9 +122,9 @@ public class ProdutoRepository {
 
             stmt.setString(1, produto.getNome());
             stmt.setString(2, produto.getCategoria().name());
-            stmt.setDouble(3, produto.getPreco());
+            stmt.setBigDecimal(3, produto.getPreco());
             stmt.setInt(4, produto.getQtdEstoque());
-            stmt.setInt(5, produto.getId());
+            stmt.setLong(5, produto.getId());
 
             int linhasAfetadas = stmt.executeUpdate();
             return linhasAfetadas > 0;
@@ -138,10 +136,10 @@ public class ProdutoRepository {
 
     private Produto mapearProduto(ResultSet rs) throws SQLException {
         Produto produto = new Produto();
-        produto.setId(rs.getInt("id"));
+        produto.setId(rs.getLong("id"));
         produto.setNome(rs.getString("nome"));
         produto.setCategoria(CategoriaProduto.valueOf(rs.getString("categoria")));
-        produto.setPreco(rs.getDouble("preco"));
+        produto.setPreco(rs.getBigDecimal("preco"));
         produto.setQtdEstoque(rs.getInt("qtd_estoque"));
         return produto;
     }

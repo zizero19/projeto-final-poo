@@ -1,29 +1,36 @@
 package model;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 import model.enums.CategoriaProduto;
 
 public class Produto {
-    private int id;
+    private Long id;
     private String nome;
     private CategoriaProduto categoria;
-    private double preco;
+    private BigDecimal preco;
     private int qtdEstoque;
 
     public Produto() {
     }
 
-    public Produto(String nome, CategoriaProduto categoria, double preco, int quantidadeEstoque) {
+    public Produto(String nome, CategoriaProduto categoria, BigDecimal preco, int quantidadeEstoque) {
         this.nome = nome;
         this.categoria = categoria;
-        this.preco = preco;
-        this.qtdEstoque = quantidadeEstoque;
+        setPreco(preco);
+        setQtdEstoque(quantidadeEstoque);
     }
 
-    public void setId(int id) {
+    public Produto(String nome, CategoriaProduto categoria, double preco, int quantidadeEstoque) {
+        this(nome, categoria, BigDecimal.valueOf(preco).setScale(2, RoundingMode.HALF_UP), quantidadeEstoque);
+    }
+
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
@@ -43,16 +50,20 @@ public class Produto {
         this.categoria = categoria;
     }
 
-    public double getPreco() {
-        return preco;
+    public BigDecimal getPreco() {
+        return preco == null ? BigDecimal.ZERO : preco;
+    }
+
+    public void setPreco(BigDecimal preco) {
+        if (preco == null) {
+            this.preco = BigDecimal.ZERO;
+            return;
+        }
+        this.preco = preco.setScale(2, RoundingMode.HALF_UP);
     }
 
     public void setPreco(double preco) {
-        if (preco > 0) {
-            this.preco = preco;
-        } else {
-            System.out.println("Preço inválido.");
-        }
+        setPreco(BigDecimal.valueOf(preco));
     }
 
     public int getQtdEstoque() {
@@ -92,8 +103,7 @@ public class Produto {
         return "ID: " + id +
                 "\nNome: " + nome +
                 "\nCategoria: " + categoria +
-                "\nPreço: R$ " + String.format("%.2f", preco) +
+                "\nPreço: R$ " + getPreco().setScale(2, RoundingMode.HALF_UP) +
                 "\nEstoque: " + qtdEstoque;
     }
-
 }

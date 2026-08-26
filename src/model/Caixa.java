@@ -1,5 +1,7 @@
 package model;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,29 +9,25 @@ import java.util.List;
 import model.enums.StatusPedido;
 
 public class Caixa {
-
-    private static int PROXIMO_ID = 1;
-
-    private int id;
+    private Long id;
     private List<Pedido> pedidos;
-    private double totalVendas;
+    private BigDecimal totalVendas;
     private boolean isAberto;
     private LocalDateTime abertura;
     private LocalDateTime fechamento;
 
     public Caixa() {
-        this.id = PROXIMO_ID++;
         this.pedidos = new ArrayList<>();
-        this.totalVendas = 0.0;
+        this.totalVendas = BigDecimal.ZERO;
         this.isAberto = true;
         this.abertura = LocalDateTime.now();
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -41,12 +39,16 @@ public class Caixa {
         this.pedidos = pedidos;
     }
 
-    public double getTotalVendas() {
-        return totalVendas;
+    public BigDecimal getTotalVendas() {
+        return totalVendas == null ? BigDecimal.ZERO : totalVendas.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public void setTotalVendas(BigDecimal totalVendas) {
+        this.totalVendas = totalVendas == null ? BigDecimal.ZERO : totalVendas.setScale(2, RoundingMode.HALF_UP);
     }
 
     public void setTotalVendas(double totalVendas) {
-        this.totalVendas = totalVendas;
+        setTotalVendas(BigDecimal.valueOf(totalVendas));
     }
 
     public boolean isAberto() {
@@ -92,7 +94,7 @@ public class Caixa {
         pedidos.add(pedido);
 
         if (pedidoFoiEfetuado(pedido)) {
-            totalVendas += pedido.calcularTotal();
+            totalVendas = totalVendas.add(pedido.calcularTotal());
         }
     }
 
@@ -109,7 +111,7 @@ public class Caixa {
         sb.append("Status: ").append(isAberto ? "Aberto" : "Fechado").append("\n");
         sb.append("Abertura: ").append(abertura != null ? abertura : "-").append("\n");
         sb.append("Fechamento: ").append(fechamento != null ? fechamento : "-").append("\n");
-        sb.append("Total de vendas: R$ ").append(String.format("%.2f", totalVendas)).append("\n");
+        sb.append("Total de vendas: R$ ").append(getTotalVendas().setScale(2, RoundingMode.HALF_UP)).append("\n");
         sb.append("Pedidos registrados: ").append(pedidos == null ? 0 : pedidos.size());
 
         return sb.toString();

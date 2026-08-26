@@ -1,4 +1,4 @@
-package view;
+package desktop.view;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
@@ -11,16 +11,34 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-import app.Contexto;
-import view.Cliente.MenuCliente;
-import view.Produto.MenuProduto;
-import view.Turma.MenuTurma;
+import desktop.view.Cliente.MenuCliente;
+import service.CaixaService;
+import service.ClienteService;
+import service.PedidoService;
+import service.ProdutoService;
+import service.TurmaService;
+import desktop.view.Produto.MenuProduto;
+import desktop.view.Turma.MenuTurma;
 
 public class MenuPrincipal {
-    private Contexto contexto;
 
-    public MenuPrincipal(Contexto contexto) {
-        this.contexto = contexto;
+    private final ClienteService clienteService;
+    private final ProdutoService produtoService;
+    private final PedidoService pedidoService;
+    private final CaixaService caixaService;
+    private final TurmaService turmaService;
+
+    public MenuPrincipal(
+            ClienteService clienteService,
+            ProdutoService produtoService,
+            PedidoService pedidoService,
+            CaixaService caixaService,
+            TurmaService turmaService) {
+        this.clienteService = clienteService;
+        this.produtoService = produtoService;
+        this.pedidoService = pedidoService;
+        this.caixaService = caixaService;
+        this.turmaService = turmaService;
     }
 
     public void iniciar() {
@@ -75,31 +93,31 @@ public class MenuPrincipal {
 
         btnClientes.addActionListener(e -> {
             tela.setVisible(false);
-            new MenuCliente(contexto).menu();
+            new MenuCliente(clienteService, pedidoService, turmaService).menu();
             tela.setVisible(true);
         });
 
         btnProdutos.addActionListener(e -> {
             tela.setVisible(false);
-            new MenuProduto(contexto).menu();
+            new MenuProduto(produtoService).menu();
             tela.setVisible(true);
         });
 
         btnPedidos.addActionListener(e -> {
             tela.setVisible(false);
-            new MenuPedido(contexto).menu();
+            new MenuPedido(clienteService, produtoService, pedidoService).menu();
             tela.setVisible(true);
         });
 
         btnCaixa.addActionListener(e -> {
             tela.setVisible(false);
-            new MenuCaixa(contexto).menu();
+            new MenuCaixa(caixaService).menu();
             tela.setVisible(true);
         });
 
         btnTurmas.addActionListener(e -> {
             tela.setVisible(false);
-            new MenuTurma(contexto).menu();
+            new MenuTurma(turmaService).menu();
             tela.setVisible(true);
         });
 

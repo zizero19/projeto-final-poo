@@ -1,7 +1,7 @@
-package view.Turma;
+package desktop.view.Turma;
 
-import java.awt.GridLayout;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -19,16 +19,16 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
-import app.Contexto;
+import service.TurmaService;
 import model.Turma;
 import model.enums.DiaSemana;
 import model.enums.Turno;
 
 public class MenuTurma {
-    Contexto contexto;
+    private final TurmaService turmaService;
 
-    public MenuTurma(Contexto contexto) {
-        this.contexto = contexto;
+    public MenuTurma(TurmaService turmaService) {
+        this.turmaService = turmaService;
     }
 
     public void menu() {
@@ -101,11 +101,11 @@ public class MenuTurma {
     }
 
     public void cadastrarTurma() {
-        new FormTurma(contexto).abrir();
+        new FormTurma(turmaService).abrir();
     }
 
     public void resumoTurmasHoje() {
-        List<Turma> turmas = contexto.getTurmaRepository().listarTurmas();
+        List<Turma> turmas = turmaService.listarTurmas();
         DiaSemana diaAtual = obterDiaSemanaAtual();
 
         if (diaAtual == null) {
@@ -211,7 +211,7 @@ public class MenuTurma {
     }
 
     public void listarTurmas() {
-        List<Turma> turmas = contexto.getTurmaRepository().listarTurmas();
+        List<Turma> turmas = turmaService.listarTurmas();
 
         if (turmas.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Nenhuma turma cadastrada.");
@@ -241,9 +241,9 @@ public class MenuTurma {
     }
 
     public void buscarTurmaPorId() {
-        int id = Integer.parseInt(JOptionPane.showInputDialog("Digite o ID da turma a ser buscada:"));
+        Long id = Long.parseLong(JOptionPane.showInputDialog("Digite o ID da turma a ser buscada:"));
 
-        Turma turma = contexto.getTurmaRepository().buscarTurma(id);
+        Turma turma = turmaService.buscarTurma(id);
 
         if (turma != null) {
             JOptionPane.showMessageDialog(null,
@@ -256,16 +256,13 @@ public class MenuTurma {
                             + "Está Ativa? " + (turma.isAtivo() ? "Sim" : "Não"));
         } else {
             JOptionPane.showMessageDialog(null, "Turma não encontrada.");
-            return;
-
         }
-
     }
 
     public void atualizarTurma() {
-        int id = Integer.parseInt(JOptionPane.showInputDialog("Digite o ID da turma a ser atualizada:"));
+        Long id = Long.parseLong(JOptionPane.showInputDialog("Digite o ID da turma a ser atualizada:"));
 
-        Turma turma = contexto.getTurmaRepository().buscarTurma(id);
+        Turma turma = turmaService.buscarTurma(id);
 
         if (turma == null) {
             JOptionPane.showMessageDialog(null, "Turma não encontrada.");
@@ -278,7 +275,6 @@ public class MenuTurma {
         comboTurno.setSelectedItem(turma.getTurno());
         JPanel painelDias = criarPainelDiasAula(turma.getDiasAula());
         JCheckBox chkAtivo = new JCheckBox("Ativo/Desativado", turma.isAtivo());
-        chkAtivo.setSelected(turma.isAtivo());
 
         JPanel painel = new JPanel();
         painel.setLayout(new BoxLayout(painel, BoxLayout.Y_AXIS));
@@ -298,12 +294,8 @@ public class MenuTurma {
         painel.add(new JLabel("Esta Ativa?"));
         painel.add(chkAtivo);
 
-        int opcao = JOptionPane.showConfirmDialog(
-                null,
-                painel,
-                "Atualizar Turma",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE);
+        int opcao = JOptionPane.showConfirmDialog(null, painel, "Atualizar Turma",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (opcao == JOptionPane.OK_OPTION) {
             turma.setNomeTurma(txtNome.getText());
@@ -314,22 +306,14 @@ public class MenuTurma {
 
             JOptionPane.showMessageDialog(null, "Turma atualizada com sucesso!");
         }
-
     }
 
     public Turno lerTurnoTurma() {
         String[] opcoes = { "Matutino", "Vespertino", "Noturno", "Integral" };
 
         while (true) {
-            int escolha = JOptionPane.showOptionDialog(
-                    null,
-                    "Escolha o turno da turma:",
-                    "Turno",
-                    JOptionPane.DEFAULT_OPTION,
-                    JOptionPane.INFORMATION_MESSAGE,
-                    null,
-                    opcoes,
-                    opcoes[0]);
+            int escolha = JOptionPane.showOptionDialog(null, "Escolha o turno da turma:", "Turno",
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, opcoes, opcoes[0]);
 
             switch (escolha) {
                 case 0:
@@ -349,12 +333,8 @@ public class MenuTurma {
     public List<DiaSemana> lerDiasAulaTurma() {
         JPanel painel = criarPainelDiasAula(new ArrayList<>());
 
-        int opcao = JOptionPane.showConfirmDialog(
-                null,
-                painel,
-                "Dias de Aula",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE);
+        int opcao = JOptionPane.showConfirmDialog(null, painel, "Dias de Aula",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (opcao != JOptionPane.OK_OPTION) {
             return new ArrayList<>();
@@ -419,29 +399,27 @@ public class MenuTurma {
     }
 
     public void inativarTurma() {
-        int id = Integer.parseInt(JOptionPane.showInputDialog("Digite o ID da turma a ser buscada:"));
+        Long id = Long.parseLong(JOptionPane.showInputDialog("Digite o ID da turma a ser buscada:"));
 
-        Turma turma = contexto.getTurmaRepository().buscarTurma(id);
+        Turma turma = turmaService.buscarTurma(id);
 
         if (turma == null) {
             JOptionPane.showMessageDialog(null, "Turma não encontrada para inativar.");
         } else {
             turma.setAtivo(false);
             JOptionPane.showMessageDialog(null, "Turma inativada com sucesso!");
-
         }
     }
 
     public void excluirTurma() {
+        Long id = Long.parseLong(JOptionPane.showInputDialog("Digite o ID da turma a ser excluída:"));
 
-        int id = Integer.parseInt(JOptionPane.showInputDialog("Digite o ID da turma a ser excluída:"));
-
-        Turma turma = contexto.getTurmaRepository().buscarTurma(id);
+        Turma turma = turmaService.buscarTurma(id);
 
         if (turma == null) {
             JOptionPane.showMessageDialog(null, "Turma não encontrada para exclusão.");
         } else {
-            contexto.getTurmaRepository().excluirTurma(id);
+            turmaService.excluirTurma(id);
             JOptionPane.showMessageDialog(null, "Turma excluída com sucesso!");
         }
     }
@@ -449,7 +427,7 @@ public class MenuTurma {
     public void buscarTurmaPorNome() {
         String nome = JOptionPane.showInputDialog("Digite o nome da turma a ser buscada:");
 
-        Turma turmaEncontrada = contexto.getTurmaRepository().buscarTurma(nome);
+        Turma turmaEncontrada = turmaService.buscarTurma(nome);
 
         if (turmaEncontrada != null) {
             JOptionPane.showMessageDialog(null,
@@ -462,7 +440,6 @@ public class MenuTurma {
                             + "Está Ativa? " + (turmaEncontrada.isAtivo() ? "Sim" : "Não"));
         } else {
             JOptionPane.showMessageDialog(null, "Turma não encontrada.");
-            return;
         }
     }
 

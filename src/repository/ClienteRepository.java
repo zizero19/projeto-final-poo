@@ -4,68 +4,168 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-import javax.swing.JOptionPane;
-
-import db.ConnectionFactory;
+import infrastructure.database.ConnectionFactory;
 import model.Cliente;
+import model.Turma;
 
 public class ClienteRepository {
 
-    public boolean salvarCliente(Cliente cliente) {
-        if (cliente == null) {
-            return false;
-        }
-
-        String sql = "INSERT INTO cliente (nome, cpf, email, telefone, turma_id) VALUES (?, ?, ?, ?, ?)";
+    public Cliente salvarCliente(Cliente cliente) {
+        String sql = """
+                INSERT INTO cliente
+                    (nome, cpf, email, telefone, turma_id, is_devendo)
+                VALUES
+                    (?, ?, ?, ?, ?, ?)
+                RETURNING id
+                """;
 
         try (Connection conn = ConnectionFactory.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, cliente.getNome());
             stmt.setString(2, cliente.getCpf());
             stmt.setString(3, cliente.getEmail());
             stmt.setString(4, cliente.getTelefone());
-            stmt.setLong(5, cliente.getTurmaMatriculada().getId());
-            stmt.executeUpdate();
 
-            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    cliente.setId(generatedKeys.getLong(1));
-                }
+            if (cliente.getTurmaMatriculada() != null
+                    && cliente.getTurmaMatriculada().getId() != null) {
+                stmt.setLong(5, cliente.getTurmaMatriculada().getId());
+            } else {
+                stmt.setNull(5, Types.BIGINT);
             }
 
-            return true;
+            stmt.setBoolean(6, cliente.isDevendo());
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    cliente.setId(rs.getLong("id"));
+                    return cliente;
+                }
+            }
         } catch (SQLException e) {
-            System.out.println("Erro ao salvar cliente: " + e.getMessage());
-            return false;
+            throw new RuntimeException("Erro ao salvar cliente.", e);
         }
+
+        throw new RuntimeException("Não foi possível salvar o cliente.");
     }
 
     public List<Cliente> listarClientes() {
-        return clientes;
+        List<Cliente> clientes = new ArrayList<>();
+        String sql = "SELECT * FROM cliente ORDER BY id";
+
+        try (Connection conn = ConnectionFactory.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                clientes.add(mapearCliente(rs));
+            }
+            return clientes;
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao listar clientes.", e);
+        }
     }
 
-    public Cliente buscarPorCpf(String cpf) {
-        for (Cliente cliente : clientes) {
-            if (cliente.getCpf().equals(cpf)) {
-                return cliente;
+    public Optional<Cliente> buscarPorCpf(String cpf) {
+        String sql = "SELECT * FROM cliente WHERE cpf = ?";
+
+        try (Connection conn = ConnectionFactory.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, cpf);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapearCliente(rs));
+                }
             }
+
+            return Optional.empty();
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao buscar cliente por CPF.", e);
         }
-        return null;
+    }
+
+    public Cliente atualizarCliente(Cliente cliente) {
+        String sql = """
+                UPDATE cliente
+                   SET nome = ?,
+                       cpf = ?,
+                       email = ?,
+                       telefone = ?,
+                       turma_id = ?,
+                       is_devendo = ?
+                 WHERE id = ?
+                """;
+
+        try (Connection conn = ConnectionFactory.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, cliente.getNome());
+            stmt.setString(2, cliente.getCpf());
+            stmt.setString(3, cliente.getEmail());
+            stmt.setString(4, cliente.getTelefone());
+
+            if (cliente.getTurmaMatriculada() != null
+                    && cliente.getTurmaMatriculada().getId() != null) {
+                stmt.setLong(5, cliente.getTurmaMatriculada().getId());
+            } else {
+                stmt.setNull(5, Types.BIGINT);
+            }
+
+            stmt.setBoolean(6, cliente.isDevendo());
+            stmt.setLong(7, cliente.getId());
+
+            int linhasAfetadas = stmt.executeUpdate();
+
+            if (linhasAfetadas == 0) {
+                throw new RuntimeException("Cliente não encontrado para atualização.");
+            }
+
+            return cliente;
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao atualizar cliente.", e);
+        }
     }
 
     public void excluirCliente(String cpf) {
-        Cliente cliente = buscarPorCpf(cpf);
+        String sql = "DELETE FROM cliente WHERE cpf = ?";
 
-        if (cliente != null) {
-            clientes.remove(cliente);
-        } else {
-            JOptionPane.showMessageDialog(null, "Cliente não encontrado.", "Erro", JOptionPane.ERROR_MESSAGE);
+        try (Connection conn = ConnectionFactory.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, cpf);
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao excluir cliente.", e);
+        }
+    }
+
+    private Cliente mapearCliente(ResultSet rs) throws SQLException {
+        Cliente cliente = new Cliente();
+
+        cliente.setId(rs.getLong("id"));
+        cliente.setNome(rs.getString("nome"));
+        cliente.setCpf(rs.getString("cpf"));
+        cliente.setEmail(rs.getString("email"));
+        cliente.setTelefone(rs.getString("telefone"));
+        cliente.setDevendo(rs.getBoolean("is_devendo"));
+
+        long turmaId = rs.getLong("turma_id");
+        if (!rs.wasNull()) {
+            Turma turma = new TurmaRepository().buscarTurma(turmaId);
+            cliente.setTurmaMatriculada(turma);
         }
 
+        return cliente;
     }
 }

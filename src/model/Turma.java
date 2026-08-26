@@ -7,10 +7,7 @@ import model.enums.DiaSemana;
 import model.enums.Turno;
 
 public class Turma {
-
-    private static int PROXIMO_ID = 1;
-
-    private int id;
+    private Long id;
     private String nomeTurma;
     private int qtdALunos;
     private Turno turno;
@@ -18,12 +15,9 @@ public class Turma {
     private List<DiaSemana> diasAula;
 
     public Turma() {
-        this.id = PROXIMO_ID++;
-        this.diasAula = new ArrayList<>();
     }
 
     public Turma(String nomeTurma, int qtdALunos, Turno turno, boolean isAtivo, List<DiaSemana> diasAula) {
-        this();
         this.nomeTurma = nomeTurma;
         this.qtdALunos = qtdALunos;
         this.turno = turno;
@@ -31,11 +25,11 @@ public class Turma {
         this.diasAula = diasAula != null ? new ArrayList<>(diasAula) : new ArrayList<>();
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

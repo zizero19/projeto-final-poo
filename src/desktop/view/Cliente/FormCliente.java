@@ -1,4 +1,4 @@
-package view.Cliente;
+package desktop.view.Cliente;
 
 import java.awt.BorderLayout;
 import java.awt.Frame;
@@ -17,23 +17,25 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.text.MaskFormatter;
 
-import app.Contexto;
 import model.Cliente;
+import service.ClienteService;
+import service.TurmaService;
 import model.Turma;
 
 public class FormCliente extends JDialog {
 
-    private final Contexto contexto;
-
+    private final ClienteService clienteService;
+    private final TurmaService turmaService;
     private final JTextField txtNome = new JTextField();
     private final JFormattedTextField txtCpf;
     private final JTextField txtEmail = new JTextField();
     private final JFormattedTextField txtTelefone;
     private final JComboBox<Turma> cbTurma = new JComboBox<>();
 
-    public FormCliente(Contexto contexto) {
+    public FormCliente(ClienteService clienteService, TurmaService turmaService) {
         super((Frame) null, "Cadastro de Cliente", true);
-        this.contexto = contexto;
+        this.clienteService = clienteService;
+        this.turmaService = turmaService;
 
         txtCpf = criarCampoCpf();
         txtTelefone = criarCampoTelefone();
@@ -98,7 +100,7 @@ public class FormCliente extends JDialog {
     }
 
     private void carregarTurmas() {
-        List<Turma> turmas = contexto.getTurmaRepository().listarTurmas();
+        List<Turma> turmas = turmaService.listarTurmas();
 
         cbTurma.addItem(null);
         for (Turma turma : turmas) {
@@ -144,7 +146,7 @@ public class FormCliente extends JDialog {
             return;
         }
 
-        if (contexto.getClienteRepository().buscarPorCpf(cpf) != null) {
+        if (clienteService.buscarPorCpf(cpf) != null) {
             erro("Já existe um cliente com o CPF " + cpf + ".", txtCpf);
             return;
         }
@@ -156,7 +158,7 @@ public class FormCliente extends JDialog {
         cliente.setTelefone(telefone);
         cliente.setTurmaMatriculada(turma);
 
-        contexto.getClienteRepository().salvarCliente(cliente);
+        clienteService.salvarCliente(cliente);
 
         JOptionPane.showMessageDialog(
                 this,

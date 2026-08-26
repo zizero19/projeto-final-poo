@@ -1,8 +1,10 @@
-package view.Produto;
+package desktop.view.Produto;
 
 import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.GridLayout;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -13,22 +15,22 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import app.Contexto;
+import service.ProdutoService;
 import model.Produto;
 import model.enums.CategoriaProduto;
 
 public class FormProduto extends JDialog {
 
-    private final Contexto contexto;
+    private final ProdutoService produtoService;
 
     private final JTextField txtNome = new JTextField();
     private final JComboBox<CategoriaProduto> cbCategoria = new JComboBox<>(CategoriaProduto.values());
     private final JTextField txtPreco = new JTextField();
     private final JTextField txtEstoque = new JTextField();
 
-    public FormProduto(Contexto contexto) {
+    public FormProduto(ProdutoService produtoService) {
         super((Frame) null, "Cadastro de Produto", true);
-        this.contexto = contexto;
+        this.produtoService = produtoService;
         configurarTela();
     }
 
@@ -76,10 +78,7 @@ public class FormProduto extends JDialog {
         }
 
         if (categoria == null) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Selecione uma categoria.",
-                    "Dados inválidos",
+            JOptionPane.showMessageDialog(this, "Selecione uma categoria.", "Dados inválidos",
                     JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -94,11 +93,12 @@ public class FormProduto extends JDialog {
             return;
         }
 
-        double preco;
+        BigDecimal preco;
         int estoque;
 
         try {
-            preco = Double.parseDouble(precoTexto.replace(',', '.'));
+            String valorNormalizado = precoTexto.replace("R$", "").replace(".", "").replace(',', '.').trim();
+            preco = new BigDecimal(valorNormalizado).setScale(2, RoundingMode.HALF_UP);
         } catch (NumberFormatException e) {
             erro("Digite um preço válido.", txtPreco);
             return;
@@ -111,7 +111,7 @@ public class FormProduto extends JDialog {
             return;
         }
 
-        if (preco <= 0) {
+        if (preco.compareTo(BigDecimal.ZERO) <= 0) {
             erro("O preço deve ser maior que zero.", txtPreco);
             return;
         }
@@ -122,31 +122,20 @@ public class FormProduto extends JDialog {
         }
 
         Produto produto = new Produto(nome, categoria, preco, estoque);
-
-        if (!contexto.getProdutoRepository().salvarProduto(produto)) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Não foi possível cadastrar o produto.",
-                    "Erro",
+        if (produtoService.salvarProduto(produto) == null) {
+            JOptionPane.showMessageDialog(this, "Não foi possível cadastrar o produto.", "Erro",
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        JOptionPane.showMessageDialog(
-                this,
-                "Produto cadastrado com sucesso!",
-                "Sucesso",
+        JOptionPane.showMessageDialog(this, "Produto cadastrado com sucesso!", "Sucesso",
                 JOptionPane.INFORMATION_MESSAGE);
 
         dispose();
     }
 
     private void erro(String mensagem, JTextField campo) {
-        JOptionPane.showMessageDialog(
-                this,
-                mensagem,
-                "Dados inválidos",
-                JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(this, mensagem, "Dados inválidos", JOptionPane.WARNING_MESSAGE);
         campo.requestFocus();
     }
 

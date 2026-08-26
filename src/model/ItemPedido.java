@@ -1,17 +1,24 @@
 package model;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 public class ItemPedido {
     private Produto produto;
     private int quantidade;
-    private double subtotal;
+    private BigDecimal subtotal;
 
     public ItemPedido() {
     }
 
-    public ItemPedido(Produto produto, int quantidade, double subtotal) {
+    public ItemPedido(Produto produto, int quantidade, BigDecimal subtotal) {
         this.produto = produto;
         this.quantidade = quantidade;
         this.subtotal = subtotal;
+    }
+
+    public ItemPedido(Produto produto, int quantidade, double subtotal) {
+        this(produto, quantidade, BigDecimal.valueOf(subtotal).setScale(2, RoundingMode.HALF_UP));
     }
 
     public Produto getProduto() {
@@ -30,17 +37,25 @@ public class ItemPedido {
         this.quantidade = quantidade;
     }
 
-    public double getSubtotal() {
-        subtotal = calcularSubtotal();
-        return subtotal;
+    public BigDecimal getSubtotal() {
+        if (subtotal == null) {
+            subtotal = calcularSubtotal();
+        }
+        return subtotal.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public void setSubtotal(BigDecimal subtotal) {
+        this.subtotal = subtotal == null ? BigDecimal.ZERO : subtotal.setScale(2, RoundingMode.HALF_UP);
     }
 
     public void setSubtotal(double subtotal) {
-        this.subtotal = subtotal;
+        setSubtotal(BigDecimal.valueOf(subtotal));
     }
 
-    public double calcularSubtotal() {
-        return produto.getPreco() * quantidade;
+    public BigDecimal calcularSubtotal() {
+        if (produto == null || produto.getPreco() == null) {
+            return BigDecimal.ZERO;
+        }
+        return produto.getPreco().multiply(BigDecimal.valueOf(quantidade)).setScale(2, RoundingMode.HALF_UP);
     }
-
 }

@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS turma (
-    id              SERIAL PRIMARY KEY,
+    id              BIGSERIAL PRIMARY KEY,
     nome_turma      VARCHAR(100) NOT NULL,
     qtd_alunos      INTEGER NOT NULL DEFAULT 0,
     turno           VARCHAR(20) NOT NULL,
@@ -8,16 +8,17 @@ CREATE TABLE IF NOT EXISTS turma (
 );
 
 CREATE TABLE IF NOT EXISTS cliente (
-    cpf                 VARCHAR(14) PRIMARY KEY,
-    nome                VARCHAR(150) NOT NULL,
-    email               VARCHAR(150),
-    telefone            VARCHAR(20),
-    turma_id            INTEGER REFERENCES turma(id) ON DELETE SET NULL,
-    is_devendo          BOOLEAN NOT NULL DEFAULT FALSE
+    id                 BIGSERIAL PRIMARY KEY,
+    cpf                VARCHAR(14) NOT NULL UNIQUE,
+    nome               VARCHAR(150) NOT NULL,
+    email              VARCHAR(150),
+    telefone           VARCHAR(20),
+    turma_id           BIGINT REFERENCES turma(id) ON DELETE SET NULL,
+    is_devendo         BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS produto (
-    id              SERIAL PRIMARY KEY,
+    id              BIGSERIAL PRIMARY KEY,
     nome            VARCHAR(150) NOT NULL,
     categoria       VARCHAR(30) NOT NULL,
     preco           NUMERIC(10,2) NOT NULL,
@@ -25,7 +26,7 @@ CREATE TABLE IF NOT EXISTS produto (
 );
 
 CREATE TABLE IF NOT EXISTS caixa (
-    id              SERIAL PRIMARY KEY,
+    id              BIGSERIAL PRIMARY KEY,
     total_vendas    NUMERIC(10,2) NOT NULL DEFAULT 0,
     is_aberto       BOOLEAN NOT NULL DEFAULT TRUE,
     abertura        TIMESTAMP NOT NULL,
@@ -33,20 +34,22 @@ CREATE TABLE IF NOT EXISTS caixa (
 );
 
 CREATE TABLE IF NOT EXISTS pedido (
-    id              SERIAL PRIMARY KEY,
+    id              BIGSERIAL PRIMARY KEY,
     cliente_cpf     VARCHAR(14) REFERENCES cliente(cpf) ON DELETE SET NULL,
-    caixa_id        INTEGER REFERENCES caixa(id) ON DELETE SET NULL,
+    caixa_id        BIGINT REFERENCES caixa(id) ON DELETE SET NULL,
     data_hora       TIMESTAMP NOT NULL,
     status          VARCHAR(30) NOT NULL,
+    forma_pagamento VARCHAR(20),
     observacoes     TEXT,
-    forma_pagamento VARCHAR(20)
+    preco_total     NUMERIC(10,2) NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS item_pedido (
-    id              SERIAL PRIMARY KEY,
-    pedido_id       INTEGER NOT NULL REFERENCES pedido(id) ON DELETE CASCADE,
-    produto_id      INTEGER NOT NULL REFERENCES produto(id),
-    quantidade      INTEGER NOT NULL
+    id              BIGSERIAL PRIMARY KEY,
+    pedido_id       BIGINT NOT NULL REFERENCES pedido(id) ON DELETE CASCADE,
+    produto_id      BIGINT NOT NULL REFERENCES produto(id),
+    quantidade      INTEGER NOT NULL,
+    subtotal        NUMERIC(10,2) NOT NULL DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS idx_pedido_cliente_cpf ON pedido(cliente_cpf);

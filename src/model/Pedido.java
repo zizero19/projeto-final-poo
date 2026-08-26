@@ -1,5 +1,7 @@
 package model;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,32 +10,34 @@ import model.enums.FormaPagamento;
 import model.enums.StatusPedido;
 
 public class Pedido {
-
-    private static int PROXIMO_ID = 1;
-
-    private int id;
+    private Long id;
     private Cliente cliente;
     private List<ItemPedido> itens;
     private LocalDateTime dataHora;
     private StatusPedido status;
     private String observacoes;
-    private double precoTotal;
+    private BigDecimal precoTotal;
     private FormaPagamento formaPagamento;
 
     public Pedido() {
-    }
-
-    public Pedido(int id, Cliente cliente, String observacoes) {
-        this.id = PROXIMO_ID++;
-        this.cliente = cliente;
+        this.itens = new ArrayList<>();
         this.dataHora = LocalDateTime.now();
         this.status = StatusPedido.EM_PREPARO;
-        this.itens = new ArrayList<>();
+        this.precoTotal = BigDecimal.ZERO;
+    }
+
+    public Pedido(Cliente cliente, String observacoes) {
+        this();
+        this.cliente = cliente;
         this.observacoes = observacoes;
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Cliente getCliente() {
@@ -76,12 +80,16 @@ public class Pedido {
         this.observacoes = observacoes;
     }
 
-    public double getPrecoTotal() {
-        return precoTotal;
+    public BigDecimal getPrecoTotal() {
+        return precoTotal == null ? BigDecimal.ZERO : precoTotal.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public void setPrecoTotal(BigDecimal precoTotal) {
+        this.precoTotal = precoTotal == null ? BigDecimal.ZERO : precoTotal.setScale(2, RoundingMode.HALF_UP);
     }
 
     public void setPrecoTotal(double precoTotal) {
-        this.precoTotal = precoTotal;
+        setPrecoTotal(BigDecimal.valueOf(precoTotal));
     }
 
     public FormaPagamento getFormaPagamento() {
@@ -101,13 +109,14 @@ public class Pedido {
         itens.add(item);
     }
 
-    public double calcularTotal() {
-        double total = 0.0;
+    public BigDecimal calcularTotal() {
+        BigDecimal total = BigDecimal.ZERO;
         for (ItemPedido item : itens) {
-            total += item.getSubtotal();
+            if (item != null && item.getSubtotal() != null) {
+                total = total.add(item.getSubtotal());
+            }
         }
-
-        return total;
+        return total.setScale(2, RoundingMode.HALF_UP);
     }
 
     public void finalizarPedido() {
@@ -124,7 +133,6 @@ public class Pedido {
         if (this.status == StatusPedido.AGUARDANDO_PAGAMENTO) {
             this.status = StatusPedido.FINALIZADO;
         }
-
     }
 
     public void cancelarPedido() {
@@ -160,12 +168,12 @@ public class Pedido {
             for (int i = 0; i < itens.size(); i++) {
                 ItemPedido item = itens.get(i);
                 sb.append("  ").append(i + 1).append(". ");
-                sb.append(item != null ? item.getProduto().getNome() : "Item inválido");
+                sb.append(item != null && item.getProduto() != null ? item.getProduto().getNome() : "Item inválido");
                 sb.append("\n");
             }
         }
 
-        sb.append("Total: R$ ").append(String.format("%.2f", calcularTotal()));
+        sb.append("Total: R$ ").append(getPrecoTotal().setScale(2, RoundingMode.HALF_UP));
         return sb.toString();
     }
 }
