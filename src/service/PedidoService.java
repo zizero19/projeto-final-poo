@@ -45,6 +45,10 @@ public class PedidoService {
      * Não mexe no estoque real ainda (isso só acontece ao criar o pedido de
      * fato) para não "perder" estoque caso o usuário desista do pedido.
      */
+    public boolean existeCaixaAberto() {
+        return caixaRepository.buscarCaixaAberto() != null;
+    }
+
     public ItemPedido criarItem(Produto produto, int quantidade, int quantidadeJaReservadaDoProduto) {
         if (produto == null) {
             throw new RegraNegocioException("Selecione um produto.");
@@ -75,6 +79,12 @@ public class PedidoService {
             throw new RegraNegocioException("Selecione a forma de pagamento.");
         }
 
+        Caixa caixaAberto = caixaRepository.buscarCaixaAberto();
+        if (caixaAberto == null) {
+            throw new RegraNegocioException(
+                    "Não há caixa aberto. Abra o caixa antes de registrar um pedido.");
+        }
+
         Cliente cliente = null;
         if (formaPagamento == FormaPagamento.FIADO) {
             if (cpfCliente == null || cpfCliente.isBlank()) {
@@ -93,7 +103,12 @@ public class PedidoService {
         pedido.setPrecoTotal(pedido.calcularTotal());
         pedido.cobrarPedido();
 
-        pedidoRepository.salvarPedido(pedido);
+        pedidoRepository.salvarPedido(pedido, caixaAberto.getId());
+
+        if (formaPagamento == FormaPagamento.FIADO) {
+            caixaRepository.incrementarTotalVendas(caixaAberto.getId(), pedido.getPrecoTotal());
+        }
+
         return pedido;
     }
 
@@ -144,12 +159,19 @@ public class PedidoService {
 
         Caixa caixaAberto = caixaRepository.buscarCaixaAberto();
         if (caixaAberto == null) {
-            throw new RegraNegocioException("Não há caixa aberto no momento. Abra o caixa antes de confirmar pagamentos.");
+            throw new RegraNegocioException(
+                    "Não há caixa aberto no momento. Abra o caixa antes de confirmar pagamentos.");
         }
 
         pedido.finalizarPedido();
-        pedidoRepository.atualizarStatusECaixa(pedido.getId(), StatusPedido.FINALIZADO, caixaAberto.getId());
-        caixaRepository.incrementarTotalVendas(caixaAberto.getId(), pedido.getPrecoTotal());
+
+        if (pedido.getFormaPagamento() == FormaPagamento.FIADO) {
+            pedidoRepository.atualizarStatusECaixa(pedido.getId(), StatusPedido.FINALIZADO,
+                    obterCaixaDoPedido(pedido.getId()));
+        } else {
+            pedidoRepository.atualizarStatusECaixa(pedido.getId(), StatusPedido.FINALIZADO, caixaAberto.getId());
+            caixaRepository.incrementarTotalVendas(caixaAberto.getId(), pedido.getPrecoTotal());
+        }
 
         return pedido;
     }
@@ -168,10 +190,27 @@ public class PedidoService {
         }
 
         restaurarEstoque(pedido);
-        pedido.cancelarPedido();
-        pedidoRepository.atualizarStatusECaixa(pedido.getId(), StatusPedido.CANCELADO, null);
+
+        if (pedido.getFormaPagamento() == FormaPagamento.FIADO) {
+            Long caixaId = obterCaixaDoPedido(pedido.getId());
+            caixaRepository.decrementarTotalVendas(caixaId, pedido.getPrecoTotal());
+            pedido.cancelarPedido();
+            pedidoRepository.atualizarStatusECaixa(pedido.getId(), StatusPedido.CANCELADO, caixaId);
+        } else {
+            pedido.cancelarPedido();
+            Long caixaId = pedidoRepository.buscarCaixaIdDoPedido(pedido.getId());
+            pedidoRepository.atualizarStatusECaixa(pedido.getId(), StatusPedido.CANCELADO, caixaId);
+        }
 
         return pedido;
+    }
+
+    private Long obterCaixaDoPedido(Long pedidoId) {
+        Long caixaId = pedidoRepository.buscarCaixaIdDoPedido(pedidoId);
+        if (caixaId == null) {
+            throw new RegraNegocioException("O pedido FIADO não está associado a nenhum caixa.");
+        }
+        return caixaId;
     }
 
     public List<Pedido> listarPedidos() {
@@ -180,7 +219,16 @@ public class PedidoService {
 
     public List<Pedido> listarPedidosAguardandoPagamento() {
         return pedidoRepository.listarPedidos().stream()
-                .filter(p -> p.getStatus() == StatusPedido.AGUARDANDO_PAGAMENTO)
+                .filter(p -> p.getStatus() == StatusPedido.AGUARDANDO_PAGAMENTO
+                        && p.getFormaPagamento() != FormaPagamento.FIADO)
+                .toList();
+    }
+
+    public List<Pedido> listarPedidosFiadoEmAberto() {
+        return pedidoRepository.listarPedidos().stream()
+                .filter(p -> p.getFormaPagamento() == FormaPagamento.FIADO
+                        && p.getStatus() != StatusPedido.FINALIZADO
+                        && p.getStatus() != StatusPedido.CANCELADO)
                 .toList();
     }
 

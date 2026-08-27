@@ -138,6 +138,39 @@ public class CaixaRepository {
         }
     }
 
+    public boolean possuiPedidosAbertosNaoFiado(Long caixaId) {
+        String sql = "SELECT EXISTS ("
+                + "SELECT 1 FROM pedido WHERE caixa_id = ? "
+                + "AND status NOT IN ('FINALIZADO', 'CANCELADO') "
+                + "AND (forma_pagamento IS NULL OR forma_pagamento <> 'FIADO')"
+                + ")";
+
+        try (Connection conn = ConnectionFactory.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, caixaId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() && rs.getBoolean(1);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao verificar pedidos abertos do caixa.", e);
+        }
+    }
+
+    public void decrementarTotalVendas(Long id, BigDecimal valor) {
+        String sql = "UPDATE caixa SET total_vendas = total_vendas - ? WHERE id = ?";
+
+        try (Connection conn = ConnectionFactory.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setBigDecimal(1, valor);
+            stmt.setLong(2, id);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao atualizar o total de vendas do caixa.", e);
+        }
+    }
+
     public Caixa buscarCaixaAberto() {
         String sql = "SELECT * FROM caixa WHERE is_aberto = true ORDER BY abertura DESC LIMIT 1";
 

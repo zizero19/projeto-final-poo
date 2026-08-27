@@ -46,6 +46,10 @@ public class TelaPedido extends JDialog {
     private final JTable tabelaFinalizados;
     private List<Pedido> pedidosFinalizados;
 
+    private final DefaultTableModel modelFiado;
+    private final JTable tabelaFiado;
+    private List<Pedido> pedidosFiado;
+
     public TelaPedido(PedidoService pedidoService, ProdutoService produtoService) {
         super((Frame) null, "Pedidos", true);
         this.pedidoService = pedidoService;
@@ -71,6 +75,15 @@ public class TelaPedido extends JDialog {
         tabelaFinalizados = new JTable(modelFinalizados);
         tabelaFinalizados.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
+        modelFiado = new DefaultTableModel(colunas, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        tabelaFiado = new JTable(modelFiado);
+        tabelaFiado.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
         configurarTela();
         atualizarListas();
     }
@@ -86,8 +99,15 @@ public class TelaPedido extends JDialog {
 
         JButton btnNovoPedido = new JButton("+ Novo Pedido");
         btnNovoPedido.setFont(btnNovoPedido.getFont().deriveFont(Font.BOLD, 13f));
-        btnNovoPedido.addActionListener(e -> new FormNovoPedido(pedidoService, produtoService,
-                this::atualizarListas).abrir());
+        btnNovoPedido.addActionListener(e -> {
+            if (!pedidoService.existeCaixaAberto()) {
+                JOptionPane.showMessageDialog(this,
+                        "É necessário abrir o caixa antes de registrar um pedido.",
+                        "Caixa fechado", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            new FormNovoPedido(pedidoService, produtoService, this::atualizarListas).abrir();
+        });
 
         JPanel painelTopo = new JPanel(new BorderLayout());
         painelTopo.setBorder(BorderFactory.createEmptyBorder(15, 15, 0, 15));
@@ -141,8 +161,35 @@ public class TelaPedido extends JDialog {
         painelFinalizados.add(new JScrollPane(tabelaFinalizados), BorderLayout.CENTER);
         painelFinalizados.add(painelAcoesFinalizados, BorderLayout.SOUTH);
 
+        tabelaFiado.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    abrirDetalheSelecionado(tabelaFiado, pedidosFiado);
+                }
+            }
+        });
+
+        JButton btnPagarFiado = new JButton("Registrar Pagamento");
+        btnPagarFiado.addActionListener(e -> confirmarPagamentoFiado());
+        JButton btnCancelarFiado = new JButton("Cancelar Pedido");
+        btnCancelarFiado.addActionListener(e -> cancelarFiado());
+        JButton btnDetalhesFiado = new JButton("Ver Detalhes");
+        btnDetalhesFiado.addActionListener(e -> abrirDetalheSelecionado(tabelaFiado, pedidosFiado));
+
+        JPanel painelAcoesFiado = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        painelAcoesFiado.add(btnPagarFiado);
+        painelAcoesFiado.add(btnCancelarFiado);
+        painelAcoesFiado.add(btnDetalhesFiado);
+
+        JPanel painelFiado = new JPanel(new BorderLayout(5, 5));
+        painelFiado.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        painelFiado.add(new JScrollPane(tabelaFiado), BorderLayout.CENTER);
+        painelFiado.add(painelAcoesFiado, BorderLayout.SOUTH);
+
         JTabbedPane abas = new JTabbedPane();
         abas.addTab("Aguardando Pagamento", painelAguardando);
+        abas.addTab("Fiado em Aberto", painelFiado);
         abas.addTab("Finalizados", painelFinalizados);
 
         JButton btnFechar = new JButton("Fechar");
@@ -159,6 +206,9 @@ public class TelaPedido extends JDialog {
     private void atualizarListas() {
         pedidosAguardando = pedidoService.listarPedidosAguardandoPagamento();
         preencherTabela(modelAguardando, pedidosAguardando);
+
+        pedidosFiado = pedidoService.listarPedidosFiadoEmAberto();
+        preencherTabela(modelFiado, pedidosFiado);
 
         pedidosFinalizados = pedidoService.listarPedidosFinalizados();
         preencherTabela(modelFinalizados, pedidosFinalizados);
@@ -216,6 +266,63 @@ public class TelaPedido extends JDialog {
             atualizarListas();
         } catch (RegraNegocioException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Não foi possível confirmar o pagamento",
+                    JOptionPane.WARNING_MESSAGE);
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this, "Ocorreu um erro ao acessar o banco de dados.", "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void confirmarPagamentoFiado() {
+        Pedido selecionado = obterSelecionado(tabelaFiado, pedidosFiado);
+        if (selecionado == null) {
+            JOptionPane.showMessageDialog(this, "Selecione um pedido FIADO na tabela.",
+                    "Nenhum pedido selecionado", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int confirmacao = JOptionPane.showConfirmDialog(this,
+                "Registrar o pagamento do pedido FIADO #" + selecionado.getId() + "?",
+                "Registrar Pagamento", JOptionPane.YES_NO_OPTION);
+        if (confirmacao != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        try {
+            pedidoService.confirmarPagamento(selecionado.getId());
+            JOptionPane.showMessageDialog(this, "Pagamento do FIADO registrado com sucesso.");
+            atualizarListas();
+        } catch (RegraNegocioException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Não foi possível registrar o pagamento",
+                    JOptionPane.WARNING_MESSAGE);
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this, "Ocorreu um erro ao acessar o banco de dados.", "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void cancelarFiado() {
+        Pedido selecionado = obterSelecionado(tabelaFiado, pedidosFiado);
+        if (selecionado == null) {
+            JOptionPane.showMessageDialog(this, "Selecione um pedido FIADO na tabela.",
+                    "Nenhum pedido selecionado", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int confirmacao = JOptionPane.showConfirmDialog(this,
+                "Cancelar o pedido FIADO #" + selecionado.getId()
+                        + "? O valor já registrado no caixa será estornado e os produtos voltarão ao estoque.",
+                "Cancelar Pedido FIADO", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (confirmacao != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        try {
+            pedidoService.cancelarPedido(selecionado.getId());
+            JOptionPane.showMessageDialog(this, "Pedido FIADO cancelado com sucesso.");
+            atualizarListas();
+        } catch (RegraNegocioException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Não foi possível cancelar o pedido",
                     JOptionPane.WARNING_MESSAGE);
         } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(this, "Ocorreu um erro ao acessar o banco de dados.", "Erro",

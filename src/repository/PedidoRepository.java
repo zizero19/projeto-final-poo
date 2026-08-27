@@ -12,7 +12,6 @@ import java.util.List;
 import infrastructure.database.ConnectionFactory;
 import model.ItemPedido;
 import model.Pedido;
-import model.Produto;
 import model.enums.FormaPagamento;
 import model.enums.StatusPedido;
 
@@ -21,6 +20,10 @@ public class PedidoRepository {
     private final ProdutoRepository produtoRepository = new ProdutoRepository();
 
     public void salvarPedido(Pedido pedido) {
+        salvarPedido(pedido, null);
+    }
+
+    public void salvarPedido(Pedido pedido, Long caixaId) {
         if (pedido == null) {
             return;
         }
@@ -32,7 +35,11 @@ public class PedidoRepository {
                 PreparedStatement stmtPedido = conn.prepareStatement(sqlPedido)) {
 
             stmtPedido.setString(1, pedido.getCliente() != null ? pedido.getCliente().getCpf() : null);
-            stmtPedido.setNull(2, java.sql.Types.BIGINT);
+            if (caixaId != null) {
+                stmtPedido.setLong(2, caixaId);
+            } else {
+                stmtPedido.setNull(2, java.sql.Types.BIGINT);
+            }
             stmtPedido.setTimestamp(3, Timestamp.valueOf(pedido.getDataHora()));
             stmtPedido.setString(4, pedido.getStatus().name());
             stmtPedido.setString(5, pedido.getObservacoes());
@@ -175,6 +182,25 @@ public class PedidoRepository {
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao atualizar status do pedido.", e);
         }
+    }
+
+    public Long buscarCaixaIdDoPedido(Long pedidoId) {
+        String sql = "SELECT caixa_id FROM pedido WHERE id = ?";
+
+        try (Connection conn = ConnectionFactory.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, pedidoId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    long caixaId = rs.getLong(1);
+                    return rs.wasNull() ? null : caixaId;
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao buscar o caixa do pedido.", e);
+        }
+        return null;
     }
 
     public List<Pedido> buscarPedidosPorCaixa(Long caixaId) {

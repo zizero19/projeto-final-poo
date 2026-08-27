@@ -38,6 +38,12 @@ public class CaixaService {
             throw new RegraNegocioException("Não há caixa aberto no momento.");
         }
 
+        if (caixaRepository.possuiPedidosAbertosNaoFiado(caixaAberto.getId())) {
+            throw new RegraNegocioException(
+                    "Não é possível fechar o caixa enquanto existirem pedidos em aberto que não sejam FIADO. "
+                    + "Finalize ou cancele esses pedidos antes de fechar o caixa.");
+        }
+
         caixaRepository.fecharCaixa(caixaAberto.getId(), LocalDateTime.now());
         return caixaRepository.buscarPorId(caixaAberto.getId());
     }
