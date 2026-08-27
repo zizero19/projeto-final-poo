@@ -23,13 +23,17 @@ public class PedidoRepository {
         salvarPedido(pedido, null);
     }
 
+    /**
+     * Salva o pedido já associado ao caixa que estava aberto no momento do
+     * registro.
+     */
     public void salvarPedido(Pedido pedido, Long caixaId) {
         if (pedido == null) {
             return;
         }
 
-        String sqlPedido = "INSERT INTO pedido (cliente_cpf, caixa_id, data_hora, status, observacoes, forma_pagamento, preco_total) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id";
+        String sqlPedido = "INSERT INTO pedido (cliente_cpf, caixa_id, data_hora, status, observacoes, forma_pagamento, preco_total, valor_pago) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
 
         try (Connection conn = ConnectionFactory.getConnection();
                 PreparedStatement stmtPedido = conn.prepareStatement(sqlPedido)) {
@@ -45,6 +49,7 @@ public class PedidoRepository {
             stmtPedido.setString(5, pedido.getObservacoes());
             stmtPedido.setString(6, pedido.getFormaPagamento() != null ? pedido.getFormaPagamento().name() : null);
             stmtPedido.setBigDecimal(7, pedido.getPrecoTotal());
+            stmtPedido.setBigDecimal(8, pedido.getValorPago());
 
             try (ResultSet rsPedido = stmtPedido.executeQuery()) {
                 if (rsPedido.next()) {
@@ -184,6 +189,40 @@ public class PedidoRepository {
         }
     }
 
+    public void atualizarValorPago(Long pedidoId, BigDecimal valorPago) {
+        String sql = "UPDATE pedido SET valor_pago = ? WHERE id = ?";
+
+        try (Connection conn = ConnectionFactory.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setBigDecimal(1, valorPago);
+            stmt.setLong(2, pedidoId);
+            if (stmt.executeUpdate() == 0) {
+                throw new RuntimeException("Pedido não encontrado para atualizar o valor pago.");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao atualizar valor pago do pedido.", e);
+        }
+    }
+
+    public List<Pedido> buscarPedidosFiadoEmAbertoPorCliente(String cpf) {
+        List<Pedido> pedidos = new ArrayList<>();
+        String sql = "SELECT * FROM pedido WHERE cliente_cpf = ? AND forma_pagamento = 'FIADO' "
+                + "AND status NOT IN ('FINALIZADO', 'CANCELADO') ORDER BY data_hora ASC, id ASC";
+
+        try (Connection conn = ConnectionFactory.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, cpf);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    pedidos.add(mapearPedido(rs));
+                }
+            }
+            return pedidos;
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao buscar fiados em aberto do cliente.", e);
+        }
+    }
+
     public Long buscarCaixaIdDoPedido(Long pedidoId) {
         String sql = "SELECT caixa_id FROM pedido WHERE id = ?";
 
@@ -226,14 +265,10 @@ public class PedidoRepository {
 
     public BigDecimal calcularSaldoDevedor(String cpf) {
         BigDecimal saldo = BigDecimal.ZERO;
-        for (Pedido pedido : buscarPedidosPorCpfDeCliente(cpf)) {
-            if (pedido.getFormaPagamento() == FormaPagamento.FIADO
-                    && pedido.getStatus() != StatusPedido.FINALIZADO
-                    && pedido.getStatus() != StatusPedido.CANCELADO) {
-                saldo = saldo.add(pedido.getPrecoTotal());
-            }
+        for (Pedido pedido : buscarPedidosFiadoEmAbertoPorCliente(cpf)) {
+            saldo = saldo.add(pedido.getSaldoDevedor());
         }
-        return saldo;
+        return saldo.setScale(2, java.math.RoundingMode.HALF_UP);
     }
 
     private Pedido mapearPedido(ResultSet rs) throws SQLException {
@@ -243,6 +278,7 @@ public class PedidoRepository {
         pedido.setStatus(StatusPedido.valueOf(rs.getString("status")));
         pedido.setObservacoes(rs.getString("observacoes"));
         pedido.setPrecoTotal(rs.getBigDecimal("preco_total"));
+        pedido.setValorPago(rs.getBigDecimal("valor_pago"));
 
         String clienteCpf = rs.getString("cliente_cpf");
         if (clienteCpf != null && !clienteCpf.isBlank()) {

@@ -105,8 +105,12 @@ public class PedidoService {
 
         pedidoRepository.salvarPedido(pedido, caixaAberto.getId());
 
+        // FIADO já representa uma venda registrada neste caixa, mesmo que o
+        // pagamento ainda esteja pendente. O valor só será lançado uma vez.
         if (formaPagamento == FormaPagamento.FIADO) {
             caixaRepository.incrementarTotalVendas(caixaAberto.getId(), pedido.getPrecoTotal());
+            cliente.adicionarDivida(pedido.getPrecoTotal());
+            clienteRepository.atualizarSaldoDevedor(cliente.getCpf(), cliente.getSaldoDevedor());
         }
 
         return pedido;
@@ -163,17 +167,111 @@ public class PedidoService {
                     "Não há caixa aberto no momento. Abra o caixa antes de confirmar pagamentos.");
         }
 
-        pedido.finalizarPedido();
-
         if (pedido.getFormaPagamento() == FormaPagamento.FIADO) {
-            pedidoRepository.atualizarStatusECaixa(pedido.getId(), StatusPedido.FINALIZADO,
-                    obterCaixaDoPedido(pedido.getId()));
-        } else {
-            pedidoRepository.atualizarStatusECaixa(pedido.getId(), StatusPedido.FINALIZADO, caixaAberto.getId());
-            caixaRepository.incrementarTotalVendas(caixaAberto.getId(), pedido.getPrecoTotal());
+            registrarPagamentoFiado(pedidoId, pedido.getSaldoDevedor());
+            return buscarPorId(pedidoId);
         }
 
+        pedido.finalizarPedido();
+        pedidoRepository.atualizarStatusECaixa(pedido.getId(), StatusPedido.FINALIZADO, caixaAberto.getId());
+        caixaRepository.incrementarTotalVendas(caixaAberto.getId(), pedido.getPrecoTotal());
         return pedido;
+    }
+
+    /**
+     * Registra um pagamento parcial ou total da dívida do cliente. O valor é
+     * distribuído pelos pedidos FIADO mais antigos primeiro.
+     */
+    public void quitarSaldoDevedor(String cpf, BigDecimal valorPagamento) {
+        if (cpf == null || cpf.isBlank()) {
+            throw new RegraNegocioException("CPF do cliente deve ser informado.");
+        }
+        if (valorPagamento == null || valorPagamento.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RegraNegocioException("O valor do pagamento deve ser maior que zero.");
+        }
+
+        Caixa caixaAberto = caixaRepository.buscarCaixaAberto();
+        if (caixaAberto == null) {
+            throw new RegraNegocioException("É necessário ter um caixa aberto para registrar um pagamento.");
+        }
+
+        Cliente cliente = clienteRepository.buscarPorCpf(cpf)
+                .orElseThrow(() -> new RegraNegocioException("Cliente não encontrado."));
+
+        BigDecimal saldoCliente = cliente.getSaldoDevedor();
+        if (valorPagamento.compareTo(saldoCliente) > 0) {
+            throw new RegraNegocioException("O pagamento não pode ser maior que o saldo devedor de "
+                    + util.FormatacaoUtil.formatarMoeda(saldoCliente) + ".");
+        }
+
+        BigDecimal restante = valorPagamento.setScale(2, java.math.RoundingMode.HALF_UP);
+        List<Pedido> fiados = pedidoRepository.buscarPedidosFiadoEmAbertoPorCliente(cpf);
+
+        for (Pedido pedido : fiados) {
+            if (restante.compareTo(BigDecimal.ZERO) <= 0) {
+                break;
+            }
+
+            BigDecimal saldoPedido = pedido.getSaldoDevedor();
+            BigDecimal pagamentoPedido = restante.min(saldoPedido);
+            pedido.registrarPagamento(pagamentoPedido);
+            pedidoRepository.atualizarValorPago(pedido.getId(), pedido.getValorPago());
+
+            if (pedido.getSaldoDevedor().compareTo(BigDecimal.ZERO) == 0) {
+                pedidoRepository.atualizarStatusECaixa(pedido.getId(), StatusPedido.FINALIZADO,
+                        pedidoRepository.buscarCaixaIdDoPedido(pedido.getId()));
+            }
+
+            restante = restante.subtract(pagamentoPedido);
+        }
+
+        cliente.registrarPagamento(valorPagamento);
+        clienteRepository.atualizarSaldoDevedor(cpf, cliente.getSaldoDevedor());
+    }
+
+    /**
+     * Registra o pagamento restante de um único pedido FIADO.
+     */
+    public void registrarPagamentoFiado(Long pedidoId, BigDecimal valorPagamento) {
+        if (pedidoId == null) {
+            throw new RegraNegocioException("Pedido deve ser informado.");
+        }
+        if (valorPagamento == null || valorPagamento.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RegraNegocioException("O valor do pagamento deve ser maior que zero.");
+        }
+
+        Caixa caixaAberto = caixaRepository.buscarCaixaAberto();
+        if (caixaAberto == null) {
+            throw new RegraNegocioException("É necessário ter um caixa aberto para registrar um pagamento.");
+        }
+
+        Pedido pedido = buscarPorId(pedidoId);
+        if (pedido == null || pedido.getFormaPagamento() != FormaPagamento.FIADO) {
+            throw new RegraNegocioException("Pedido FIADO não encontrado.");
+        }
+        if (pedido.getStatus() != StatusPedido.AGUARDANDO_PAGAMENTO) {
+            throw new RegraNegocioException("O pedido FIADO não está em aberto.");
+        }
+        if (valorPagamento.compareTo(pedido.getSaldoDevedor()) > 0) {
+            throw new RegraNegocioException("O pagamento não pode ser maior que o saldo do pedido.");
+        }
+
+        Cliente cliente = pedido.getCliente();
+        if (cliente == null) {
+            throw new RegraNegocioException("O pedido FIADO não possui cliente associado.");
+        }
+
+        pedido.registrarPagamento(valorPagamento);
+        pedidoRepository.atualizarValorPago(pedido.getId(), pedido.getValorPago());
+
+        cliente.registrarPagamento(valorPagamento);
+        clienteRepository.atualizarSaldoDevedor(cliente.getCpf(), cliente.getSaldoDevedor());
+
+        if (pedido.getSaldoDevedor().compareTo(BigDecimal.ZERO) == 0) {
+            pedido.finalizarPedido();
+            pedidoRepository.atualizarStatusECaixa(pedido.getId(), StatusPedido.FINALIZADO,
+                    pedidoRepository.buscarCaixaIdDoPedido(pedido.getId()));
+        }
     }
 
     /**
@@ -193,11 +291,21 @@ public class PedidoService {
 
         if (pedido.getFormaPagamento() == FormaPagamento.FIADO) {
             Long caixaId = obterCaixaDoPedido(pedido.getId());
+            BigDecimal saldoPedido = pedido.getSaldoDevedor();
             caixaRepository.decrementarTotalVendas(caixaId, pedido.getPrecoTotal());
             pedido.cancelarPedido();
             pedidoRepository.atualizarStatusECaixa(pedido.getId(), StatusPedido.CANCELADO, caixaId);
+
+            if (pedido.getCliente() != null && saldoPedido.compareTo(BigDecimal.ZERO) > 0) {
+                Cliente cliente = clienteRepository.buscarPorCpf(pedido.getCliente().getCpf()).orElse(null);
+                if (cliente != null) {
+                    cliente.registrarPagamento(saldoPedido);
+                    clienteRepository.atualizarSaldoDevedor(cliente.getCpf(), cliente.getSaldoDevedor());
+                }
+            }
         } else {
             pedido.cancelarPedido();
+            // Mantém a associação com o caixa para preservar o histórico.
             Long caixaId = pedidoRepository.buscarCaixaIdDoPedido(pedido.getId());
             pedidoRepository.atualizarStatusECaixa(pedido.getId(), StatusPedido.CANCELADO, caixaId);
         }
@@ -256,6 +364,7 @@ public class PedidoService {
     }
 
     public BigDecimal calcularSaldoDevedor(String cpf) {
-        return pedidoRepository.calcularSaldoDevedor(cpf);
+        Cliente cliente = clienteRepository.buscarPorCpf(cpf).orElse(null);
+        return cliente == null ? BigDecimal.ZERO : cliente.getSaldoDevedor();
     }
 }

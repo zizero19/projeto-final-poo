@@ -6,6 +6,7 @@ import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.math.BigDecimal;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -27,6 +28,7 @@ import model.Cliente;
 import model.Pedido;
 import service.ClienteService;
 import service.PedidoService;
+import service.RegraNegocioException;
 import service.TurmaService;
 import util.FormatacaoUtil;
 
@@ -77,16 +79,19 @@ public class TelaCliente extends JDialog {
         JButton btnEditar = new JButton("Editar Cliente");
         JButton btnExcluir = new JButton("Excluir Cliente");
         JButton btnHistorico = new JButton("Histórico de Pedidos");
+        JButton btnQuitarSaldo = new JButton("Quitar Saldo Devedor");
 
         btnCadastrar.addActionListener(e -> cadastrarCliente());
         btnEditar.addActionListener(e -> editarCliente());
         btnExcluir.addActionListener(e -> excluirCliente());
         btnHistorico.addActionListener(e -> historicoPedidos());
+        btnQuitarSaldo.addActionListener(e -> quitarSaldoDevedor());
 
         painelAcoes.add(btnCadastrar);
         painelAcoes.add(btnEditar);
         painelAcoes.add(btnExcluir);
         painelAcoes.add(btnHistorico);
+        painelAcoes.add(btnQuitarSaldo);
 
         JPanel painelBusca = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton btnBuscar = new JButton("Buscar");
@@ -146,7 +151,7 @@ public class TelaCliente extends JDialog {
                     c.getEmail(),
                     c.getTurmaMatriculada() != null ? c.getTurmaMatriculada().getNomeTurma() : "-",
                     c.getTelefone(),
-                    FormatacaoUtil.formatarMoeda(pedidoService.calcularSaldoDevedor(c.getCpf()))
+                    FormatacaoUtil.formatarMoeda(c.getSaldoDevedor())
             });
         }
     }
@@ -216,6 +221,49 @@ public class TelaCliente extends JDialog {
             carregarClientes(cliente != null ? List.of(cliente) : List.of());
         } else {
             carregarClientes(clienteService.buscarClientesPorNome(texto));
+        }
+    }
+
+    private void quitarSaldoDevedor() {
+        Cliente selecionado = obterClienteSelecionado();
+        if (selecionado == null) {
+            JOptionPane.showMessageDialog(this, "Selecione um cliente na tabela.",
+                    "Nenhum cliente selecionado", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        BigDecimal saldo = selecionado.getSaldoDevedor();
+        if (saldo.compareTo(BigDecimal.ZERO) <= 0) {
+            JOptionPane.showMessageDialog(this, "Este cliente não possui saldo devedor.");
+            return;
+        }
+
+        String entrada = JOptionPane.showInputDialog(this,
+                "Saldo devedor: " + FormatacaoUtil.formatarMoeda(saldo) + "\n\n"
+                        + "Informe o valor que deseja quitar:",
+                "Quitar Saldo Devedor", JOptionPane.QUESTION_MESSAGE);
+
+        if (entrada == null) {
+            return;
+        }
+
+        try {
+            BigDecimal valor = new BigDecimal(entrada.trim().replace(",", "."));
+            pedidoService.quitarSaldoDevedor(selecionado.getCpf(), valor);
+            JOptionPane.showMessageDialog(this,
+                    "Pagamento registrado com sucesso.\nNovo saldo: "
+                            + FormatacaoUtil.formatarMoeda(selecionado.getSaldoDevedor().subtract(valor)),
+                    "Pagamento registrado", JOptionPane.INFORMATION_MESSAGE);
+            carregarClientes(clienteService.listarClientes());
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Informe um valor monetário válido.",
+                    "Valor inválido", JOptionPane.WARNING_MESSAGE);
+        } catch (RegraNegocioException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(),
+                    "Não foi possível registrar o pagamento", JOptionPane.WARNING_MESSAGE);
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this, "Ocorreu um erro ao acessar o banco de dados.",
+                    "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 

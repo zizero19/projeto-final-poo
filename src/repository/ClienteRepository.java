@@ -1,5 +1,6 @@
 package repository;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,7 +19,7 @@ public class ClienteRepository {
     public Cliente salvarCliente(Cliente cliente) {
         String sql = """
                 INSERT INTO cliente
-                    (nome, cpf, email, telefone, turma_id, is_devendo)
+                    (nome, cpf, email, telefone, turma_id, saldo_devedor)
                 VALUES
                     (?, ?, ?, ?, ?, ?)
                 RETURNING id
@@ -39,7 +40,7 @@ public class ClienteRepository {
                 stmt.setNull(5, Types.BIGINT);
             }
 
-            stmt.setBoolean(6, cliente.isDevendo());
+            stmt.setBigDecimal(6, cliente.getSaldoDevedor());
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -129,7 +130,7 @@ public class ClienteRepository {
                        email = ?,
                        telefone = ?,
                        turma_id = ?,
-                       is_devendo = ?
+                       saldo_devedor = ?
                  WHERE id = ?
                 """;
 
@@ -148,7 +149,7 @@ public class ClienteRepository {
                 stmt.setNull(5, Types.BIGINT);
             }
 
-            stmt.setBoolean(6, cliente.isDevendo());
+            stmt.setBigDecimal(6, cliente.getSaldoDevedor());
             stmt.setLong(7, cliente.getId());
 
             int linhasAfetadas = stmt.executeUpdate();
@@ -161,6 +162,29 @@ public class ClienteRepository {
 
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao atualizar cliente.", e);
+        }
+    }
+
+    public void atualizarSaldoDevedor(String cpf, BigDecimal saldoDevedor) {
+        if (cpf == null || cpf.isBlank()) {
+            throw new IllegalArgumentException("CPF do cliente deve ser informado.");
+        }
+        if (saldoDevedor == null || saldoDevedor.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Saldo devedor inválido.");
+        }
+
+        String sql = "UPDATE cliente SET saldo_devedor = ? WHERE cpf = ?";
+
+        try (Connection conn = ConnectionFactory.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setBigDecimal(1, saldoDevedor.setScale(2, java.math.RoundingMode.HALF_UP));
+            stmt.setString(2, cpf);
+            int linhasAfetadas = stmt.executeUpdate();
+            if (linhasAfetadas == 0) {
+                throw new RuntimeException("Cliente não encontrado para atualizar o saldo devedor.");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao atualizar saldo devedor do cliente.", e);
         }
     }
 
@@ -186,7 +210,7 @@ public class ClienteRepository {
         cliente.setCpf(rs.getString("cpf"));
         cliente.setEmail(rs.getString("email"));
         cliente.setTelefone(rs.getString("telefone"));
-        cliente.setDevendo(rs.getBoolean("is_devendo"));
+        cliente.setSaldoDevedor(rs.getBigDecimal("saldo_devedor"));
 
         long turmaId = rs.getLong("turma_id");
         if (!rs.wasNull()) {

@@ -44,7 +44,7 @@ public final class MockDadosCompletos {
 
         List<Caixa> caixasFechados = criarCaixasFechados(caixaRepository);
         criarPedidosFinalizados(pedidoRepository, caixaRepository, produtos, clientes, caixasFechados);
-        criarPedidosAguardandoPagamento(pedidoRepository, produtos, clientes);
+        criarPedidosAguardandoPagamento(pedidoRepository, clienteRepository, produtos, clientes);
 
         Caixa caixaAtual = new Caixa();
         caixaRepository.salvarCaixa(caixaAtual);
@@ -95,6 +95,7 @@ public final class MockDadosCompletos {
 
     private static void criarPedidosAguardandoPagamento(
             PedidoRepository pedidoRepository,
+            ClienteRepository clienteRepository,
             List<Produto> produtos,
             List<Cliente> clientes) {
 
@@ -108,6 +109,11 @@ public final class MockDadosCompletos {
             pedido.setPrecoTotal(pedido.calcularTotal());
             pedido.setStatus(StatusPedido.AGUARDANDO_PAGAMENTO);
             pedidoRepository.salvarPedido(pedido);
+
+            if (pedido.getFormaPagamento() == FormaPagamento.FIADO && cliente != null) {
+                cliente.adicionarDivida(pedido.getPrecoTotal());
+                clienteRepository.atualizarSaldoDevedor(cliente.getCpf(), cliente.getSaldoDevedor());
+            }
         }
     }
 

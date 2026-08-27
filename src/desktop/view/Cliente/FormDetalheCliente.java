@@ -50,7 +50,7 @@ public class FormDetalheCliente extends JDialog {
         painel.add(new JLabel(cliente.getTelefone()));
 
         painel.add(new JLabel("Saldo devedor:"));
-        painel.add(new JLabel(FormatacaoUtil.formatarMoeda(pedidoService.calcularSaldoDevedor(cliente.getCpf()))));
+        painel.add(new JLabel(FormatacaoUtil.formatarMoeda(cliente.getSaldoDevedor())));
 
         JButton btnFechar = new JButton("Fechar");
         btnFechar.addActionListener(e -> dispose());

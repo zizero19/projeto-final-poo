@@ -17,6 +17,7 @@ public class Pedido {
     private StatusPedido status;
     private String observacoes;
     private BigDecimal precoTotal;
+    private BigDecimal valorPago;
     private FormaPagamento formaPagamento;
 
     public Pedido() {
@@ -24,6 +25,7 @@ public class Pedido {
         this.dataHora = LocalDateTime.now();
         this.status = StatusPedido.EM_PREPARO;
         this.precoTotal = BigDecimal.ZERO;
+        this.valorPago = BigDecimal.ZERO;
     }
 
     public Pedido(Cliente cliente, String observacoes) {
@@ -90,6 +92,33 @@ public class Pedido {
 
     public void setPrecoTotal(double precoTotal) {
         setPrecoTotal(BigDecimal.valueOf(precoTotal));
+    }
+
+    public BigDecimal getValorPago() {
+        return valorPago == null ? BigDecimal.ZERO : valorPago.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public void setValorPago(BigDecimal valorPago) {
+        if (valorPago == null || valorPago.compareTo(BigDecimal.ZERO) < 0) {
+            this.valorPago = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+            return;
+        }
+        this.valorPago = valorPago.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal getSaldoDevedor() {
+        BigDecimal saldo = getPrecoTotal().subtract(getValorPago());
+        return saldo.max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public void registrarPagamento(BigDecimal valor) {
+        if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("O valor do pagamento deve ser maior que zero.");
+        }
+        if (valor.compareTo(getSaldoDevedor()) > 0) {
+            throw new IllegalArgumentException("O pagamento não pode ser maior que o saldo do pedido.");
+        }
+        setValorPago(getValorPago().add(valor));
     }
 
     public FormaPagamento getFormaPagamento() {

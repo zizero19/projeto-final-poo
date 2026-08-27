@@ -56,6 +56,7 @@ public class TelaPedido extends JDialog {
         this.produtoService = produtoService;
 
         String[] colunas = { "ID", "Cliente", "Data/Hora", "Pagamento", "Total" };
+        String[] colunasFiado = { "ID", "Cliente", "Data/Hora", "Total", "Saldo" };
 
         modelAguardando = new DefaultTableModel(colunas, 0) {
             @Override
@@ -75,7 +76,7 @@ public class TelaPedido extends JDialog {
         tabelaFinalizados = new JTable(modelFinalizados);
         tabelaFinalizados.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        modelFiado = new DefaultTableModel(colunas, 0) {
+        modelFiado = new DefaultTableModel(colunasFiado, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -161,6 +162,7 @@ public class TelaPedido extends JDialog {
         painelFinalizados.add(new JScrollPane(tabelaFinalizados), BorderLayout.CENTER);
         painelFinalizados.add(painelAcoesFinalizados, BorderLayout.SOUTH);
 
+        // ---- Aba: fiado em aberto ----
         tabelaFiado.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -217,13 +219,23 @@ public class TelaPedido extends JDialog {
     private void preencherTabela(DefaultTableModel model, List<Pedido> pedidos) {
         model.setRowCount(0);
         for (Pedido p : pedidos) {
-            model.addRow(new Object[] {
-                    p.getId(),
-                    p.getCliente() != null ? p.getCliente().getNome() : "-",
-                    FormatacaoUtil.formatarDataHora(p.getDataHora()),
-                    p.getFormaPagamento(),
-                    FormatacaoUtil.formatarMoeda(p.getPrecoTotal())
-            });
+            if (model == modelFiado) {
+                model.addRow(new Object[] {
+                        p.getId(),
+                        p.getCliente() != null ? p.getCliente().getNome() : "-",
+                        FormatacaoUtil.formatarDataHora(p.getDataHora()),
+                        FormatacaoUtil.formatarMoeda(p.getPrecoTotal()),
+                        FormatacaoUtil.formatarMoeda(p.getSaldoDevedor())
+                });
+            } else {
+                model.addRow(new Object[] {
+                        p.getId(),
+                        p.getCliente() != null ? p.getCliente().getNome() : "-",
+                        FormatacaoUtil.formatarDataHora(p.getDataHora()),
+                        p.getFormaPagamento(),
+                        FormatacaoUtil.formatarMoeda(p.getPrecoTotal())
+                });
+            }
         }
     }
 
@@ -281,17 +293,22 @@ public class TelaPedido extends JDialog {
             return;
         }
 
-        int confirmacao = JOptionPane.showConfirmDialog(this,
-                "Registrar o pagamento do pedido FIADO #" + selecionado.getId() + "?",
-                "Registrar Pagamento", JOptionPane.YES_NO_OPTION);
-        if (confirmacao != JOptionPane.YES_OPTION) {
+        String entrada = JOptionPane.showInputDialog(this,
+                "Saldo do pedido: " + FormatacaoUtil.formatarMoeda(selecionado.getSaldoDevedor()) + "\n\n"
+                        + "Informe o valor do pagamento:",
+                "Registrar Pagamento FIADO", JOptionPane.QUESTION_MESSAGE);
+        if (entrada == null) {
             return;
         }
 
         try {
-            pedidoService.confirmarPagamento(selecionado.getId());
-            JOptionPane.showMessageDialog(this, "Pagamento do FIADO registrado com sucesso.");
+            java.math.BigDecimal valor = new java.math.BigDecimal(entrada.trim().replace(",", "."));
+            pedidoService.registrarPagamentoFiado(selecionado.getId(), valor);
+            JOptionPane.showMessageDialog(this, "Pagamento registrado com sucesso.");
             atualizarListas();
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Informe um valor monetário válido.", "Valor inválido",
+                    JOptionPane.WARNING_MESSAGE);
         } catch (RegraNegocioException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Não foi possível registrar o pagamento",
                     JOptionPane.WARNING_MESSAGE);

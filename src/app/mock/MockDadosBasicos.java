@@ -127,7 +127,7 @@ public final class MockDadosBasicos {
             cliente.setEmail("cliente" + (i + 1) + "@teste.local");
             cliente.setTelefone("(48) 99999-" + String.format("%04d", 1000 + i));
             cliente.setTurmaMatriculada(turmas.get(i % turmas.size()));
-            cliente.setDevendo(false);
+            cliente.setSaldoDevedor(BigDecimal.ZERO);
             repository.salvarCliente(cliente);
         }
     }

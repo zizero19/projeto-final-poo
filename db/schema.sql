@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS cliente (
     email              VARCHAR(150),
     telefone           VARCHAR(20),
     turma_id           BIGINT REFERENCES turma(id) ON DELETE SET NULL,
-    is_devendo         BOOLEAN NOT NULL DEFAULT FALSE
+    saldo_devedor      NUMERIC(10,2) NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS produto (
@@ -41,7 +41,8 @@ CREATE TABLE IF NOT EXISTS pedido (
     status          VARCHAR(30) NOT NULL,
     forma_pagamento VARCHAR(20),
     observacoes     TEXT,
-    preco_total     NUMERIC(10,2) NOT NULL DEFAULT 0
+    preco_total     NUMERIC(10,2) NOT NULL DEFAULT 0,
+    valor_pago      NUMERIC(10,2) NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS item_pedido (
