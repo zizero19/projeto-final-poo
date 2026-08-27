@@ -22,8 +22,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.plaf.DimensionUIResource;
 import javax.swing.table.DefaultTableModel;
 
+import desktop.view.Pedido.FormDetalhePedido;
 import model.Cliente;
-import model.ItemPedido;
 import model.Pedido;
 import service.ClienteService;
 import service.PedidoService;
@@ -263,49 +263,13 @@ public class TelaCliente extends JDialog {
             }
             int linha = tabelaPedidos.getSelectedRow();
             if (linha != -1) {
-                mostrarDetalhesPedido(pedidosDoCliente.get(linha));
+                new FormDetalhePedido(pedidosDoCliente.get(linha)).abrir();
                 tabelaPedidos.clearSelection();
             }
         });
 
         JOptionPane.showMessageDialog(this, scrollPedidos, "Histórico de Pedidos de " + selecionado.getNome(),
                 JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    private void mostrarDetalhesPedido(Pedido pedido) {
-        String[] colunas = { "Produto", "Quantidade", "Preço Unitário", "Subtotal" };
-        DefaultTableModel modelItens = new DefaultTableModel(colunas, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-
-        if (pedido.getItens() != null) {
-            for (ItemPedido item : pedido.getItens()) {
-                if (item == null || item.getProduto() == null) {
-                    continue;
-                }
-                modelItens.addRow(new Object[] {
-                        item.getProduto().getNome(),
-                        item.getQuantidade(),
-                        FormatacaoUtil.formatarMoeda(item.getProduto().getPreco()),
-                        FormatacaoUtil.formatarMoeda(item.getSubtotal())
-                });
-            }
-        }
-
-        JTable tabelaItens = new JTable(modelItens);
-        JScrollPane scrollItens = new JScrollPane(tabelaItens);
-        scrollItens.setPreferredSize(new DimensionUIResource(600, 180));
-
-        JLabel lblTotal = new JLabel("Total do Pedido: " + FormatacaoUtil.formatarMoeda(pedido.calcularTotal()));
-        JPanel painel = new JPanel(new BorderLayout(5, 5));
-        painel.add(scrollItens, BorderLayout.CENTER);
-        painel.add(lblTotal, BorderLayout.SOUTH);
-
-        JOptionPane.showMessageDialog(this, painel, "Detalhes do Pedido #" + pedido.getId(),
-                JOptionPane.PLAIN_MESSAGE);
     }
 
     public void abrir() {

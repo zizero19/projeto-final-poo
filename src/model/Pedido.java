@@ -109,6 +109,13 @@ public class Pedido {
         itens.add(item);
     }
 
+    public boolean removerItem(ItemPedido item) {
+        if (item == null || itens == null) {
+            return false;
+        }
+        return itens.remove(item);
+    }
+
     public BigDecimal calcularTotal() {
         BigDecimal total = BigDecimal.ZERO;
         for (ItemPedido item : itens) {

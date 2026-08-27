@@ -11,7 +11,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+import desktop.view.Caixa.TelaCaixa;
 import desktop.view.Cliente.TelaCliente;
+import desktop.view.Pedido.TelaPedido;
 import service.CaixaService;
 import service.ClienteService;
 import service.PedidoService;
@@ -105,13 +107,13 @@ public class MenuPrincipal {
 
         btnPedidos.addActionListener(e -> {
             tela.setVisible(false);
-            new MenuPedido(clienteService, produtoService, pedidoService).menu();
+            new TelaPedido(pedidoService, produtoService).abrir();
             tela.setVisible(true);
         });
 
         btnCaixa.addActionListener(e -> {
             tela.setVisible(false);
-            new MenuCaixa(caixaService).menu();
+            new TelaCaixa(caixaService).abrir();
             tela.setVisible(true);
         });
 

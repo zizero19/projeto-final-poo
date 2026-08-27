@@ -52,7 +52,7 @@ public class PedidoRepository {
             }
 
             if (pedido.getItens() != null) {
-                String sqlItem = "INSERT INTO item_pedido (pedido_id, produto_id, quantidade, subtotal) VALUES (?, ?, ?, ?)";
+                String sqlItem = "INSERT INTO item_pedido (pedido_id, produto_id, nome_produto, preco_unitario, quantidade, subtotal) VALUES (?, ?, ?, ?, ?, ?)";
                 for (ItemPedido item : pedido.getItens()) {
                     if (item == null || item.getProduto() == null) {
                         continue;
@@ -61,8 +61,10 @@ public class PedidoRepository {
                     try (PreparedStatement stmtItem = conn.prepareStatement(sqlItem)) {
                         stmtItem.setLong(1, pedido.getId());
                         stmtItem.setLong(2, item.getProduto().getId());
-                        stmtItem.setInt(3, item.getQuantidade());
-                        stmtItem.setBigDecimal(4, item.getSubtotal());
+                        stmtItem.setString(3, item.getNomeProduto());
+                        stmtItem.setBigDecimal(4, item.getPrecoUnitario());
+                        stmtItem.setInt(5, item.getQuantidade());
+                        stmtItem.setBigDecimal(6, item.getSubtotal());
                         stmtItem.executeUpdate();
                     }
                 }
@@ -150,6 +152,52 @@ public class PedidoRepository {
         }
     }
 
+    /**
+     * Atualiza apenas o status do pedido e, opcionalmente, o caixa ao qual
+     * ele fica associado (usado ao confirmar pagamento ou cancelar).
+     * Não mexe nos itens nem em outros dados do pedido.
+     */
+    public void atualizarStatusECaixa(Long pedidoId, StatusPedido status, Long caixaId) {
+        String sql = "UPDATE pedido SET status = ?, caixa_id = ? WHERE id = ?";
+
+        try (Connection conn = ConnectionFactory.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, status.name());
+            if (caixaId != null) {
+                stmt.setLong(2, caixaId);
+            } else {
+                stmt.setNull(2, java.sql.Types.BIGINT);
+            }
+            stmt.setLong(3, pedidoId);
+
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao atualizar status do pedido.", e);
+        }
+    }
+
+    public List<Pedido> buscarPedidosPorCaixa(Long caixaId) {
+        List<Pedido> pedidos = new ArrayList<>();
+        String sql = "SELECT * FROM pedido WHERE caixa_id = ? ORDER BY data_hora DESC";
+
+        try (Connection conn = ConnectionFactory.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, caixaId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    pedidos.add(mapearPedido(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao buscar pedidos do caixa.", e);
+        }
+
+        return pedidos;
+    }
+
     public BigDecimal calcularSaldoDevedor(String cpf) {
         BigDecimal saldo = BigDecimal.ZERO;
         for (Pedido pedido : buscarPedidosPorCpfDeCliente(cpf)) {
@@ -198,9 +246,13 @@ public class PedidoRepository {
                     ItemPedido item = new ItemPedido();
                     item.setQuantidade(rs.getInt("quantidade"));
                     item.setSubtotal(rs.getBigDecimal("subtotal"));
+                    item.setNomeProduto(rs.getString("nome_produto"));
+                    item.setPrecoUnitario(rs.getBigDecimal("preco_unitario"));
 
-                    Produto produto = produtoRepository.buscarProduto(rs.getLong("produto_id"));
-                    item.setProduto(produto);
+                    long produtoId = rs.getLong("produto_id");
+                    if (!rs.wasNull()) {
+                        item.setProduto(produtoRepository.buscarProduto(produtoId));
+                    }
                     itens.add(item);
                 }
             }

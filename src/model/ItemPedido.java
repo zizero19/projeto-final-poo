@@ -7,6 +7,8 @@ public class ItemPedido {
     private Produto produto;
     private int quantidade;
     private BigDecimal subtotal;
+    private String nomeProduto;
+    private BigDecimal precoUnitario;
 
     public ItemPedido() {
     }
@@ -15,6 +17,10 @@ public class ItemPedido {
         this.produto = produto;
         this.quantidade = quantidade;
         this.subtotal = subtotal;
+        if (produto != null) {
+            this.nomeProduto = produto.getNome();
+            this.precoUnitario = produto.getPreco();
+        }
     }
 
     public ItemPedido(Produto produto, int quantidade, double subtotal) {
@@ -27,6 +33,31 @@ public class ItemPedido {
 
     public void setProduto(Produto produto) {
         this.produto = produto;
+        if (produto != null) {
+            this.nomeProduto = produto.getNome();
+            if (this.precoUnitario == null) {
+                this.precoUnitario = produto.getPreco();
+            }
+        }
+    }
+
+    public String getNomeProduto() {
+        return nomeProduto != null ? nomeProduto : (produto != null ? produto.getNome() : "Produto removido");
+    }
+
+    public void setNomeProduto(String nomeProduto) {
+        this.nomeProduto = nomeProduto;
+    }
+
+    public BigDecimal getPrecoUnitario() {
+        if (precoUnitario != null) {
+            return precoUnitario.setScale(2, RoundingMode.HALF_UP);
+        }
+        return produto != null ? produto.getPreco() : BigDecimal.ZERO;
+    }
+
+    public void setPrecoUnitario(BigDecimal precoUnitario) {
+        this.precoUnitario = precoUnitario == null ? null : precoUnitario.setScale(2, RoundingMode.HALF_UP);
     }
 
     public int getQuantidade() {
@@ -53,9 +84,7 @@ public class ItemPedido {
     }
 
     public BigDecimal calcularSubtotal() {
-        if (produto == null || produto.getPreco() == null) {
-            return BigDecimal.ZERO;
-        }
-        return produto.getPreco().multiply(BigDecimal.valueOf(quantidade)).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal preco = getPrecoUnitario();
+        return preco.multiply(BigDecimal.valueOf(quantidade)).setScale(2, RoundingMode.HALF_UP);
     }
 }

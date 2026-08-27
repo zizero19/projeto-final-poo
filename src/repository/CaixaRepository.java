@@ -1,11 +1,13 @@
 package repository;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -99,6 +101,41 @@ public class CaixaRepository {
         }
 
         return null;
+    }
+
+    /**
+     * Fecha o caixa no banco de dados (persiste o que antes só acontecia
+     * em memória via Caixa.fechar()).
+     */
+    public void fecharCaixa(Long id, LocalDateTime fechamento) {
+        String sql = "UPDATE caixa SET is_aberto = false, fechamento = ? WHERE id = ?";
+
+        try (Connection conn = ConnectionFactory.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setTimestamp(1, Timestamp.valueOf(fechamento));
+            stmt.setLong(2, id);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao fechar caixa.", e);
+        }
+    }
+
+    /**
+     * Soma o valor de uma venda finalizada ao total já registrado no caixa.
+     */
+    public void incrementarTotalVendas(Long id, BigDecimal valor) {
+        String sql = "UPDATE caixa SET total_vendas = total_vendas + ? WHERE id = ?";
+
+        try (Connection conn = ConnectionFactory.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setBigDecimal(1, valor);
+            stmt.setLong(2, id);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao atualizar total de vendas do caixa.", e);
+        }
     }
 
     public Caixa buscarCaixaAberto() {

@@ -1,6 +1,8 @@
 package app;
 
 import desktop.view.MenuPrincipal;
+import app.mock.MockDadosBasicos;
+import app.mock.MockDadosCompletos;
 import repository.CaixaRepository;
 import repository.ClienteRepository;
 import repository.PedidoRepository;
@@ -23,7 +25,7 @@ public class App {
 
         ClienteService clienteService = new ClienteService(clienteRepository);
         ProdutoService produtoService = new ProdutoService(produtoRepository);
-        CaixaService caixaService = new CaixaService(caixaRepository);
+        CaixaService caixaService = new CaixaService(caixaRepository, pedidoRepository);
         TurmaService turmaService = new TurmaService(turmaRepository);
 
         PedidoService pedidoService = new PedidoService(
@@ -31,6 +33,22 @@ public class App {
                 produtoRepository,
                 caixaRepository,
                 pedidoRepository);
+
+        boolean usarMockCompleto = false;
+
+        if (usarMockCompleto) {
+            MockDadosCompletos.popular(
+                    produtoRepository,
+                    clienteRepository,
+                    turmaRepository,
+                    pedidoRepository,
+                    caixaRepository);
+        } else {
+            MockDadosBasicos.popular(
+                    produtoRepository,
+                    clienteRepository,
+                    turmaRepository);
+        }
 
         MenuPrincipal menuPrincipal = new MenuPrincipal(
                 clienteService,
