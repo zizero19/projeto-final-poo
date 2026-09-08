@@ -7,17 +7,19 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import infrastructure.database.ConnectionFactory;
 import model.ItemPedido;
 import model.Pedido;
+import model.Produto;
 import model.enums.FormaPagamento;
 import model.enums.StatusPedido;
 
 public class PedidoRepository {
     private final ClienteRepository clienteRepository = new ClienteRepository();
-    private final ProdutoRepository produtoRepository = new ProdutoRepository();
 
     public void salvarPedido(Pedido pedido) {
         salvarPedido(pedido, null);
@@ -88,6 +90,7 @@ public class PedidoRepository {
 
     public List<Pedido> listarPedidos() {
         List<Pedido> pedidos = new ArrayList<>();
+        Map<Long, Pedido> pedidosPorId = new LinkedHashMap<>();
         String sql = "SELECT * FROM pedido ORDER BY data_hora DESC";
 
         try (Connection conn = ConnectionFactory.getConnection();
@@ -95,12 +98,64 @@ public class PedidoRepository {
                 ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                pedidos.add(mapearPedido(rs));
+                Pedido pedido = mapearPedidoSemItens(rs); // novo método, igual ao mapearPedido mas SEM chamar
+                                                          // buscarItensDoPedido
+                pedido.setItens(new ArrayList<>());
+                pedidosPorId.put(pedido.getId(), pedido);
             }
         } catch (SQLException e) {
             System.out.println("Erro ao listar pedidos: " + e.getMessage());
+            return pedidos;
         }
 
+        if (pedidosPorId.isEmpty()) {
+            return pedidos;
+        }
+
+        // Busca TODOS os itens de TODOS os pedidos listados em uma única query
+        String sqlItens = """
+                SELECT ip.pedido_id,
+                       ip.quantidade,
+                       ip.subtotal,
+                       p.id AS produto_id,
+                       p.nome,
+                       p.categoria,
+                       p.preco,
+                       p.qtd_estoque
+                  FROM item_pedido ip
+                  JOIN produto p ON p.id = ip.produto_id
+                 WHERE ip.pedido_id = ANY(?)
+                """;
+
+        try (Connection conn = ConnectionFactory.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sqlItens)) {
+
+            Long[] ids = pedidosPorId.keySet().toArray(new Long[0]);
+            stmt.setArray(1, conn.createArrayOf("bigint", ids));
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Produto produto = new Produto();
+                    produto.setId(rs.getLong("produto_id"));
+                    produto.setNome(rs.getString("nome"));
+                    produto.setCategoria(model.enums.CategoriaProduto.valueOf(rs.getString("categoria")));
+                    produto.setPreco(rs.getBigDecimal("preco"));
+                    produto.setQtdEstoque(rs.getInt("qtd_estoque"));
+
+                    ItemPedido item = new ItemPedido();
+                    item.setProduto(produto);
+                    item.setQuantidade(rs.getInt("quantidade"));
+                    item.setSubtotal(rs.getBigDecimal("subtotal"));
+
+                    Long pedidoId = rs.getLong("pedido_id");
+                    pedidosPorId.get(pedidoId).adicionarItem(item);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Erro ao buscar itens dos pedidos: " + e.getMessage());
+        }
+
+        pedidos.addAll(pedidosPorId.values());
         return pedidos;
     }
 
@@ -312,9 +367,42 @@ public class PedidoRepository {
         return pedido;
     }
 
+    private Pedido mapearPedidoSemItens(ResultSet rs) throws SQLException {
+        Pedido pedido = new Pedido();
+        pedido.setId(rs.getLong("id"));
+        pedido.setDataHora(rs.getTimestamp("data_hora").toLocalDateTime());
+        pedido.setStatus(StatusPedido.valueOf(rs.getString("status")));
+        pedido.setObservacoes(rs.getString("observacoes"));
+        pedido.setPrecoTotal(rs.getBigDecimal("preco_total"));
+        pedido.setValorPago(rs.getBigDecimal("valor_pago"));
+
+        String clienteCpf = rs.getString("cliente_cpf");
+        if (clienteCpf != null && !clienteCpf.isBlank()) {
+            pedido.setCliente(clienteRepository.buscarPorCpf(clienteCpf).orElse(null));
+        }
+
+        String formaPagamento = rs.getString("forma_pagamento");
+        if (formaPagamento != null && !formaPagamento.isBlank()) {
+            pedido.setFormaPagamento(FormaPagamento.valueOf(formaPagamento));
+        }
+
+        return pedido;
+    }
+
     private List<ItemPedido> buscarItensDoPedido(Long pedidoId) {
         List<ItemPedido> itens = new ArrayList<>();
-        String sql = "SELECT * FROM item_pedido WHERE pedido_id = ?";
+        String sql = """
+                SELECT ip.quantidade,
+                       ip.subtotal,
+                       p.id AS produto_id,
+                       p.nome,
+                       p.categoria,
+                       p.preco,
+                       p.qtd_estoque
+                  FROM item_pedido ip
+                  JOIN produto p ON p.id = ip.produto_id
+                 WHERE ip.pedido_id = ?
+                """;
 
         try (Connection conn = ConnectionFactory.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -323,16 +411,18 @@ public class PedidoRepository {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
+                    Produto produto = new Produto();
+                    produto.setId(rs.getLong("produto_id"));
+                    produto.setNome(rs.getString("nome"));
+                    produto.setCategoria(model.enums.CategoriaProduto.valueOf(rs.getString("categoria")));
+                    produto.setPreco(rs.getBigDecimal("preco"));
+                    produto.setQtdEstoque(rs.getInt("qtd_estoque"));
+
                     ItemPedido item = new ItemPedido();
+                    item.setProduto(produto);
                     item.setQuantidade(rs.getInt("quantidade"));
                     item.setSubtotal(rs.getBigDecimal("subtotal"));
-                    item.setNomeProduto(rs.getString("nome_produto"));
-                    item.setPrecoUnitario(rs.getBigDecimal("preco_unitario"));
 
-                    long produtoId = rs.getLong("produto_id");
-                    if (!rs.wasNull()) {
-                        item.setProduto(produtoRepository.buscarProduto(produtoId));
-                    }
                     itens.add(item);
                 }
             }
