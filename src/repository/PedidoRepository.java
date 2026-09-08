@@ -264,11 +264,29 @@ public class PedidoRepository {
     }
 
     public BigDecimal calcularSaldoDevedor(String cpf) {
-        BigDecimal saldo = BigDecimal.ZERO;
-        for (Pedido pedido : buscarPedidosFiadoEmAbertoPorCliente(cpf)) {
-            saldo = saldo.add(pedido.getSaldoDevedor());
+        String sql = """
+                SELECT COALESCE(SUM(preco_total), 0) AS saldo
+                  FROM pedido
+                 WHERE cliente_cpf = ?
+                   AND forma_pagamento = 'FIADO'
+                   AND status NOT IN ('FINALIZADO', 'CANCELADO')
+                """;
+
+        try (Connection conn = ConnectionFactory.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, cpf);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBigDecimal("saldo").setScale(2, java.math.RoundingMode.HALF_UP);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Erro ao calcular saldo devedor: " + e.getMessage());
         }
-        return saldo.setScale(2, java.math.RoundingMode.HALF_UP);
+
+        return BigDecimal.ZERO;
     }
 
     private Pedido mapearPedido(ResultSet rs) throws SQLException {
